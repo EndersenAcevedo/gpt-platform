@@ -1,0 +1,371 @@
+{
+  "name": "Conave",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "Sube_tu_Excel",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        0
+      ],
+      "id": "afd14a79-9206-4c7b-ad02-82570433f318",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6787ad4e-37cc-45d6-ac6f-77696ffad607",
+              "name": "Tipo de documento",
+              "value": "={{ $json.__EMPTY }}",
+              "type": "string"
+            },
+            {
+              "id": "89048722-66f0-41f6-822a-4e6c8ce23216",
+              "name": "Fecha",
+              "value": "={{ $json.__EMPTY_1 }}",
+              "type": "string"
+            },
+            {
+              "id": "9d46c277-4e8e-4772-b6e4-7de9ecbf7205",
+              "name": "Club",
+              "value": "={{ $json.__EMPTY_8 }}",
+              "type": "string"
+            },
+            {
+              "id": "cf06bfa2-4404-4344-a8d5-3ed2add7395f",
+              "name": "Cliente",
+              "value": "={{ $json.__EMPTY_10 }}",
+              "type": "string"
+            },
+            {
+              "id": "ae55f4ea-dc27-406c-85b1-e2afad746d51",
+              "name": "Monto",
+              "value": "={{ $json.__EMPTY_15 }}",
+              "type": "string"
+            },
+            {
+              "id": "2efcb55a-1a4e-4e93-9c8c-38491f0ec629",
+              "name": "User MB",
+              "value": "={{ $json.__EMPTY_19 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        0
+      ],
+      "id": "7b94f90f-fefc-4cc5-905e-e72530378ae4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "jsCode": "const allowedUsers = [\n  \"benavidean\",\n  \"iorellana\",\n  \"ramirezvi\",\n  \"sgonzalez\",\n  \"wpalacios\"\n];\n\nreturn items.filter(item => {\n  const club = String(item.json[\"Club\"]);\n  const user = String(item.json[\"User MB\"]).toLowerCase();\n\n  return club === \"6702\" && allowedUsers.includes(user);\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        0
+      ],
+      "id": "6bdde9a7-0380-4aff-8f4f-1f9fc6095031",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Facturaciones",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ],
+      "id": "1933f522-d6fb-4c15-b692-e8bcf6c3524b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Contenido"
+            },
+            {
+              "name": "contacts",
+              "type": "array"
+            },
+            {
+              "name": "messages",
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "id": "66b8542a-011d-4dd5-b585-566fb768b237",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -256,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "documentType": "image_url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        416,
+        -192
+      ],
+      "id": "c0200c8f-c69c-4a7b-8dac-65faeff3eccc",
+      "name": "Extract text",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "YJnEWiLLFArQvRV8",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].image.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        16,
+        -192
+      ],
+      "id": "f2edc9e3-633b-4d2d-a781-6d24c90495c5",
+      "name": "Download media1",
+      "webhookId": "5e9e72b1-bf3c-4f84-9323-9b11c40f0977",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        -192
+      ],
+      "id": "2b0af227-23a8-413b-9b9f-385a608a79ea",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GLRGTxZ3hDxuwOlz",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \nEsta parte traerá la imagen de conave"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "102fe626-79c9-4d2e-9e19-ecfc6ea460ac",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \nEsta parte traerá lo de la venta de las tarimas"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        336,
+        176
+      ],
+      "typeVersion": 1,
+      "id": "965667a3-4e1e-4c7c-8385-ee86cc5dc91d",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## I'm a note \nEstoy pensando como traer la venta de las llantas y baterias"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        848,
+        -224
+      ],
+      "typeVersion": 1,
+      "id": "3d751172-a951-47f4-845d-c5e34d977268",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "operation": "extractHtmlContent",
+        "extractionValues": {
+          "values": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        144,
+        144
+      ],
+      "id": "8db9acf5-e2af-4c8c-8d74-6b11c97c6475",
+      "name": "HTML"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "Contenido": "Work, vamos a procesar conave",
+          "contacts": [
+            {
+              "profile": {
+                "name": "Daniel"
+              },
+              "wa_id": "50371597740"
+            }
+          ],
+          "messages": [
+            {
+              "from": "50371597740",
+              "id": "wamid.HBgLNTAzNzE1OTc3NDAVAgASGBYzRUIwNzJDQjAwMTZEMzZFMkM0NkZFAA==",
+              "timestamp": "1772593931",
+              "type": "image",
+              "image": {
+                "caption": "Work, vamos a procesar conave",
+                "mime_type": "image/jpeg",
+                "sha256": "6AuPwm+G3JMhxNUCpRr51t6bLokqvpqJGZI3tADtU8E=",
+                "id": "1661866435133120",
+                "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=1661866435133120&source=webhook&ext=1772594232&hash=ARnD7K90EymWAL0XNZlCTK6Eyn1dfooQk1jIS7L_cfExTg"
+              }
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        []
+      ]
+    },
+    "Download media1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Extract text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Download media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e9de7330-0b73-462f-8f0c-5705921f561a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "nurVxKRM3tDbB8ml",
+  "tags": []
+}

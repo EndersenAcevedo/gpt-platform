@@ -1,0 +1,228 @@
+{
+  "name": "UPED",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Contenido"
+            },
+            {
+              "name": "contacts",
+              "type": "array"
+            },
+            {
+              "name": "messages",
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "id": "4393f2fa-d027-4af7-b986-3f9e1f66d46e",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        -144,
+        -32
+      ]
+    },
+    {
+      "parameters": {
+        "documentType": "image_url",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [
+        464,
+        -32
+      ],
+      "id": "903e7f5e-7a99-4e97-8722-c0e616f61a4e",
+      "name": "Extract text",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "YJnEWiLLFArQvRV8",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $json.messages[0].image.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        64,
+        -32
+      ],
+      "id": "0d6d1fcc-a4b4-461f-95a9-0d08299f16b8",
+      "name": "Download media1",
+      "webhookId": "5e9e72b1-bf3c-4f84-9323-9b11c40f0977",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        -32
+      ],
+      "id": "e19f91de-6f78-49ca-9ca1-039dce728e3b",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GLRGTxZ3hDxuwOlz",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('When Executed by Another Workflow').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.extractedText }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        672,
+        -32
+      ],
+      "id": "ea8db6e4-8c0b-4bab-9b58-8ccb20ff8a83",
+      "name": "Send message",
+      "webhookId": "61b3fd20-380c-4683-b625-a270dc70b9e8",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Funcionamiento \nEste flujo transforma imagen en texto",
+        "height": 128
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "bc0c741e-b8b9-4ee6-91fe-30827a3ee538",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "Contenido": "uped",
+          "contacts": [
+            {
+              "profile": {
+                "name": "Daniel"
+              },
+              "wa_id": "50371597740"
+            }
+          ],
+          "messages": [
+            {
+              "from": "50371597740",
+              "id": "wamid.HBgLNTAzNzE1OTc3NDAVAgASGCBBQ0I0MjFDNzAyNUI0NkIxRjEwMDA2RjdENjA0NUUyMwA=",
+              "timestamp": "1772244929",
+              "type": "image",
+              "image": {
+                "caption": "uped",
+                "mime_type": "image/jpeg",
+                "sha256": "MKNoHM1W/4MIpruzu4YA/mtcmeGE41WLyvXt5xhW5sw=",
+                "id": "1240593751537201",
+                "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=1240593751537201&source=webhook&ext=1772245231&hash=ARmQKLIfhsmj0w_lgRbdnKrImBgtaIZ5hIrT8LAIBz6mLQ"
+              }
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Download media1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download media1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Extract text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract text": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9b20e09a-18a9-4e8f-a15a-8497f192dfe3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "4vQCQNDtBQvA2dHH",
+  "tags": []
+}

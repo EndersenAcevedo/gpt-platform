@@ -1,0 +1,1765 @@
+{
+  "name": "Sox",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        48
+      ],
+      "id": "2502d59a-0343-4f49-a342-25cce3d9fa60",
+      "name": "WhatsApp Trigger",
+      "webhookId": "442e6e5b-1a32-4f6d-8f1d-8e05730e3b62",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "kHlhVrf22aD4xK5E",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2645065e-88ae-49ea-a1bb-3bdfa9217aea",
+                    "leftValue": "={{\n  (\n    ($json.messages?.[0]?.text?.body || '') +\n    ' ' +\n    ($json.messages?.[0]?.image?.caption || '')\n  )\n    .toLowerCase()\n    .includes('work')\n}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Work"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "19775602-e1aa-44f5-b093-791239e59594",
+                    "leftValue": "={{\n  (\n    ($json.messages?.[0]?.text?.body || '') +\n    ' ' +\n    ($json.messages?.[0]?.image?.caption || '')\n  )\n    .toLowerCase()\n    .includes('finanzas')\n}}",
+                    "rightValue": "finanzas",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Finanzas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "099a19d3-c56e-4ef4-81e7-e10a58b42067",
+                    "leftValue": "={{\n  (\n    ($json.messages?.[0]?.text?.body || '') +\n    ' ' +\n    ($json.messages?.[0]?.image?.caption || '')\n  )\n    .toLowerCase()\n    .includes('uped')\n}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "UPED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{\n  (\n    ($json.messages?.[0]?.text?.body || '') +\n    ' ' +\n    ($json.messages?.[0]?.image?.caption || '')\n  )\n    .toLowerCase()\n    .includes('sox')\n}}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "7f85625c-b493-45b9-83f7-78927b774e1b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sox"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "7bc53f0c-7d2a-4420-af1a-2e3cacd8f432",
+      "name": "Process Selector"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2d1aaec8-ed76-405f-958a-8e51e140d2f2",
+              "name": "fecha_completa",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    return date.toLocaleDateString('es-SV', {     timeZone: 'America/El_Salvador',     year: 'numeric',     month: '2-digit',     day: '2-digit'   }); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "189c564b-b104-4c69-9d6e-9e1650d482e2",
+              "name": "hora",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    return date.toLocaleTimeString('es-SV', {     timeZone: 'America/El_Salvador',     hour: '2-digit',     minute: '2-digit',     second: '2-digit',     hour12: false   }); })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "8afa246f-fc0d-49ff-ba65-ea4319002ed8",
+      "name": "Definiciones temporales"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "text",
+              "value": "={{ $('WhatsApp Trigger').item.json.messages[0].text.body }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "from",
+              "value": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6051f726-951b-4dac-8ac6-f3ca0cf59f2c",
+      "name": "Prepare Text Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "1d4d13a6-6d4b-4232-be9a-c6cf1a258e8f",
+                    "leftValue": "={{ $('WhatsApp Trigger').item.json.messages[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d484504f-db62-4d43-8301-ade648805260",
+                    "leftValue": "={{ $('WhatsApp Trigger').item.json.messages[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "imagen"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('WhatsApp Trigger').item.json.messages[0].type }}",
+                    "rightValue": "text",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3ea2c6c7-8c17-4c19-8c2f-44084e13d86a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Texto"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        0
+      ],
+      "id": "b31cf00c-793b-42ee-a9e4-55ce930b26bb",
+      "name": "Tipo de Mensaje"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $('WhatsApp Trigger').item.json.messages[0].audio.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        -224
+      ],
+      "id": "4a2f70a3-d734-44a4-ac60-b73dcb45d2ea",
+      "name": "Download media",
+      "webhookId": "5e9e72b1-bf3c-4f84-9323-9b11c40f0977",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        720,
+        -224
+      ],
+      "id": "62d8bf68-f3aa-4551-87e9-46406db7c50b",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GLRGTxZ3hDxuwOlz",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "transcribe",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        -224
+      ],
+      "id": "9d3e2c7c-2b72-4eb0-ae3e-b3898f6e8122",
+      "name": "Transcribe a recording",
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5eae30d-4e11-4da0-a618-0269d3a6ae47",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        -224
+      ],
+      "id": "f2b5c6b1-a09f-4d3b-9362-8bec684dbe6b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "959b8cdf-9fb3-4bee-a3a6-47f4071323f7",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Work",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Work"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "78dc3778-a480-4f4f-a4b7-ee09c7c23412",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "UPED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "UPED"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bb09c6a0-0fcb-46b1-8f42-d687ca32d8b4",
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Finanzas",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Finanzas"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output }}",
+                    "rightValue": "Sox",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "7f85625c-b493-45b9-83f7-78927b774e1b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Sox"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2304,
+        -16
+      ],
+      "id": "d52b48f1-c970-454a-a3d3-93ad23892ad4",
+      "name": "Process Selector1"
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "mediaUrlGet",
+        "mediaGetId": "={{ $('WhatsApp Trigger').item.json.messages[0].image.id }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        -64
+      ],
+      "id": "a5bea6e9-be1a-4977-9279-22a2768ae7c7",
+      "name": "Download media1",
+      "webhookId": "5e9e72b1-bf3c-4f84-9323-9b11c40f0977",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        720,
+        -64
+      ],
+      "id": "7a4ac580-024c-4283-af44-1dc34fd0fdad",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "GLRGTxZ3hDxuwOlz",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5eae30d-4e11-4da0-a618-0269d3a6ae47",
+              "name": "text",
+              "value": "={{ $json['0'].content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "ddf5bb48-cfe3-4139-b0de-b405333ef1ac",
+              "name": "user caption",
+              "value": "={{ $('WhatsApp Trigger').item.json.messages[0].image.caption }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1152,
+        -64
+      ],
+      "id": "82c8d785-f9b9-4907-96ab-1ff15b789c1b",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Describe la imagen, no omitas detalles",
+        "inputType": "base64",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        -64
+      ],
+      "id": "970aa494-f728-4380-b8d3-08149c0667d1",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Normalizacion de mens').item.json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2784,
+        96
+      ],
+      "id": "984b6e33-1442-42d2-823a-18a5fd51f69f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2784,
+        272
+      ],
+      "id": "99ad131f-7bc5-45cc-828d-b2674cf433fc",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c913ddbd-a4ae-412d-aa7d-bef720ebfc95",
+              "name": "text",
+              "value": "={{ $json[\"user caption\"] || '' }} + {{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1584,
+        32
+      ],
+      "id": "f6f9773b-76f7-40b9-9c3c-8b30b44d3a65",
+      "name": "Normalizacion de mens"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2880,
+        272
+      ],
+      "id": "e178bf26-2e50-4bad-a66b-2756e377fdc5",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3136,
+        96
+      ],
+      "id": "ebd845b4-0717-42aa-9864-549f9e5d384c",
+      "name": "Send message",
+      "webhookId": "247e1c4c-13a6-43b5-8aea-6d703cd5df2f",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1d327b61-07b1-47e4-af08-5e5d2726186c",
+              "leftValue": "={{ $json.contacts[0].wa_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -992,
+        48
+      ],
+      "id": "6de58528-db84-47fe-a87e-2ba3c5b76ae2",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        224
+      ],
+      "id": "9269246f-5464-40db-b8dc-549419e3fcc4",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RlRln3SDwgFlyWLJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RlRln3SDwgFlyWLJ",
+          "cachedResultName": "Finanzas"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Contenido": "={{ $('Normalizacion de mens').item.json.text }}",
+            "contacts": "={{ $('WhatsApp Trigger').item.json.contacts }}",
+            "messages": "={{ $('WhatsApp Trigger').item.json.messages }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        -48
+      ],
+      "id": "859d92e2-9dae-487f-a194-8e0da1e34a57",
+      "name": "Call 'Finanzas'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "RlRln3SDwgFlyWLJ",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/RlRln3SDwgFlyWLJ",
+          "cachedResultName": "Finanzas"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contacts": "={{ $json.contacts }}",
+            "messages": "={{ $json.messages }}",
+            "Contenido": "={{ $json.messages[0].text.body }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -400
+      ],
+      "id": "9cdac47a-582e-4e02-bf83-ea473b9b837e",
+      "name": "Call 'Finanzas'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4vQCQNDtBQvA2dHH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4vQCQNDtBQvA2dHH",
+          "cachedResultName": "UPED"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contacts": "={{ $json.contacts }}",
+            "messages": "={{ $json.messages }}",
+            "Contenido": "={{ $json.messages[0].image.caption }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -240
+      ],
+      "id": "44abee9d-7cd3-4875-bdd0-4c3aa22bb444",
+      "name": "Call 'UPED'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "4vQCQNDtBQvA2dHH",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/4vQCQNDtBQvA2dHH",
+          "cachedResultName": "UPED"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Contenido": "={{ $('Normalizacion de mens').item.json.text }}",
+            "contacts": "={{ $('WhatsApp Trigger').item.json.contacts }}",
+            "messages": "={{ $('WhatsApp Trigger').item.json.messages }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        -192
+      ],
+      "id": "1c635774-3a9b-4880-872d-e91635cf4220",
+      "name": "Call 'UPED'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6lGPIZRG9z1p33X9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/6lGPIZRG9z1p33X9",
+          "cachedResultName": "Work"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contacts": "={{ $json.contacts }}",
+            "messages": "={{ $json.messages }}",
+            "Contenido": "={{ $json.messages[0].image.caption }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -32,
+        -544
+      ],
+      "id": "b5278104-ddbf-4652-b83d-c548e11b35de",
+      "name": "Call 'Work'"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "6lGPIZRG9z1p33X9",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/6lGPIZRG9z1p33X9",
+          "cachedResultName": "Work"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "contacts": "={{ $('WhatsApp Trigger').item.json.contacts }}",
+            "messages": "={{ $('WhatsApp Trigger').item.json.messages }}",
+            "Contenido": "={{ $('Normalizacion de mens').item.json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Contenido",
+              "displayName": "Contenido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "contacts",
+              "displayName": "contacts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            },
+            {
+              "id": "messages",
+              "displayName": "messages",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        -352
+      ],
+      "id": "efec19d4-e7bf-4162-a833-f42fc4be9c77",
+      "name": "Call 'Work'1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "=Eres un clasificador inteligente y persistente de flujos de conversación.\n\nTu función es analizar cada mensaje del usuario y detectar a qué sistema desea acceder, incluso si está mal escrito o si es un comando de seguimiento dentro de la conversación.\n\nDebes mantener el contexto del flujo usando la memoria de Postgres: si el usuario ya inició interacción con un sistema, los siguientes mensajes relacionados deben continuar asignándose automáticamente a ese sistema, aunque no se mencione explícitamente.\n\nObjetivos válidos\n\nWork\n\nFinanzas\n\nUPED\n\nSox\n\nREGLAS DE CLASIFICACIÓN\n\nSi el mensaje contiene una palabra similar a:\nwork, wrk, wrok → Responder: Work\n\nSi contiene una palabra similar a:\nuped, upedd, upee, upped → Responder: UPED\n\nSi contiene una palabra similar a:\nsox, soxx, soox, socs → Responder: Sox\n\nSi menciona términos financieros, aunque estén mal escritos:\nfinanza, finnanza, fiannaza, finansas, Fiannzas → Responder: Finanzas\n\nFlujos persistentes:\n\nSi el usuario ya inició interacción con un sistema y los mensajes posteriores no mencionan explícitamente el nombre, mantener el flujo del último sistema detectado consultando la memoria de Postgres.\n\nEjemplo:\n\nUsuario: “Finanzas, agrega $10 en alimentos” → Finanzas\n\nUsuario: “Ahora agrega $5 de transporte” → Finanzas (sin mencionar Finanzas)\n\nMensajes ambiguos o sin coincidencia clara:\n\nBuscar en la memoria de Postgres la última conversación del usuario.\n\nTomar el último flujo detectado (Work, Finanzas, UPED o Sox) y usarlo como salida.\n\nSi no existe historial previo, o el historial también es ambiguo → Responder Sox\n\nREGLAS GENERALES\n\nIgnorar mayúsculas/minúsculas.\n\nTolerar errores ortográficos simples y letras repetidas.\n\nResponder únicamente con el nombre del sistema: Work, Finanzas, UPED, Sox.\n\nSin explicación.\n\nSin texto adicional.\n\nMantener consistencia con la memoria de conversación para flujos persistentes.\n\n💡 Tip de implementación con memoria Postgres:\n\nCada vez que clasifiques un mensaje, guarda el sistema detectado y la fecha/hora.\n\nPara mensajes ambiguos, recuperar el último flujo del usuario y asignar el mismo sistema automáticamente.\n\nEsto permite que conversaciones cortas tipo “y agrega $5” continúen en el flujo correcto."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1920,
+        -64
+      ],
+      "id": "c18969a9-fb34-4680-bf83-917ce8b1d435",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2016,
+        80
+      ],
+      "id": "d98869f7-d218-4f47-939a-fb44e52afb19",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "text",
+              "value": "={{ $('WhatsApp Trigger').item.json.messages[0].document.caption }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "from",
+              "value": "={{ $('WhatsApp Trigger').item.json.contacts[0].wa_id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f55d731c-a236-4755-be18-033e4bd6d906",
+      "name": "No imagen o audio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.contacts[0].wa_id }}",
+                    "rightValue": "50368673619",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "51d5e4a2-b518-4153-a12f-20e1986cb4f3"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Jorge"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "306a3937-3f03-4a7a-a581-7932e2b9dfca",
+                    "leftValue": "={{ $json.contacts[0].wa_id }}",
+                    "rightValue": "50371597740",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Admin"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "No autorizado"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -720,
+        16
+      ],
+      "id": "9e51571e-8a86-4f9d-ab6e-b24c78e5a39b",
+      "name": "Filtro de usuarios"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $json.contacts[0].wa_id }}",
+        "textBody": "=Hola, Lo siento  {{ $json.contacts[0].profile.name }}, no estas autorizado\n\n🤖 Sox",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        -416,
+        320
+      ],
+      "id": "b29ed3c1-6903-4a9b-83b4-4a18a16a6c9e",
+      "name": "Send message1",
+      "webhookId": "3a163ab2-7922-4d97-85fa-a3a50834dca2",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "cDpogTQpJhMlHxTl",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/cDpogTQpJhMlHxTl",
+          "cachedResultName": "Flujo Jorge"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -496,
+        -144
+      ],
+      "id": "fd917014-9093-43b9-84ca-b2b91da18d8b",
+      "name": "Call 'Flujo Jorge'"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        80
+      ],
+      "id": "04cb78ae-534c-4d4a-be9c-4ba1afa998b4",
+      "name": "OpenAI Chat Model",
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "WhatsApp Trigger": [
+      {
+        "json": {
+          "messaging_product": "whatsapp",
+          "metadata": {
+            "display_phone_number": "50373708594",
+            "phone_number_id": "895578086980611"
+          },
+          "contacts": [
+            {
+              "profile": {
+                "name": "Daniel"
+              },
+              "wa_id": "50371597740"
+            }
+          ],
+          "messages": [
+            {
+              "from": "50371597740",
+              "id": "wamid.HBgLNTAzNzE1OTc3NDAVAgASGBYzRUIwOTZGMjFBNTU2RkI3RTQ4RTE1AA==",
+              "timestamp": "1774565723",
+              "type": "document",
+              "document": {
+                "caption": "Work, es PI OB",
+                "filename": "2089_001.pdf",
+                "mime_type": "application/pdf",
+                "sha256": "g4bP4Lay2sRDXW4W6h3NN5ZoVosgasJTc7wW00BErcg=",
+                "id": "914780971331374",
+                "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=914780971331374&source=webhook&ext=1774566026&hash=ARlosvL9YoaNPxnTgQtQdW7eqVUCr6PXtXdSknlnVxyrVw"
+              }
+            }
+          ],
+          "field": "messages"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Selector": {
+      "main": [
+        [
+          {
+            "node": "Call 'Work'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Finanzas'1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'UPED'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Definiciones temporales",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Definiciones temporales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definiciones temporales": {
+      "main": [
+        [
+          {
+            "node": "Tipo de Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Text Message": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion de mens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tipo de Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Download media",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download media1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare Text Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No imagen o audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download media": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Transcribe a recording",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe a recording": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion de mens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download media1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion de mens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Selector1": {
+      "main": [
+        [
+          {
+            "node": "Call 'Work'1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'UPED'1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Call 'Finanzas'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizacion de mens": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Filtro de usuarios",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Process Selector1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No imagen o audio": {
+      "main": [
+        [
+          {
+            "node": "Normalizacion de mens",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro de usuarios": {
+      "main": [
+        [
+          {
+            "node": "Call 'Flujo Jorge'",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process Selector",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "191a4109-13b2-4378-8ed0-ec625e0ee43c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "EFdpMp92RjltJSYA",
+  "tags": []
+}

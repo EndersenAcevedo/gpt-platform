@@ -1,0 +1,3903 @@
+{
+  "name": "Finanzas",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "Contenido"
+            },
+            {
+              "name": "contacts",
+              "type": "array"
+            },
+            {
+              "name": "messages",
+              "type": "array"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        112,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7d147ea-ce25-4e09-be6d-135d672aea50",
+              "name": "Contexto",
+              "value": "={{ $json.Contenido }}",
+              "type": "string"
+            },
+            {
+              "id": "cc2345a8-c5ff-4730-955d-6192a1f34355",
+              "name": "From",
+              "value": "={{ $json.contacts[0].wa_id }}",
+              "type": "string"
+            },
+            {
+              "id": "683f0a55-1afa-42bf-b11d-308da5e6842a",
+              "name": "Hora",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    return date.toLocaleTimeString('es-SV', {     timeZone: 'America/El_Salvador',     hour: '2-digit',     minute: '2-digit',     second: '2-digit',     hour12: false   }); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "3ff405b1-f98e-4d0f-9eab-a85e6df75b89",
+              "name": "Fecha",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    return date.toLocaleDateString('es-SV', {     timeZone: 'America/El_Salvador',     year: 'numeric',     month: '2-digit',     day: '2-digit'   }); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "447bac78-c430-4ee1-8304-6a985f116570",
+              "name": "Numero de semana",
+              "value": "={{\n(() => {\n  const timestamp = Number($json.messages[0].timestamp);\n  const date = new Date(timestamp * 1000);\n\n  // Ajustar a zona horaria El Salvador\n  const localDate = new Date(date.toLocaleString('en-US', {\n    timeZone: 'America/El_Salvador'\n  }));\n\n  // Copia para no modificar la original\n  const d = new Date(Date.UTC(\n    localDate.getFullYear(),\n    localDate.getMonth(),\n    localDate.getDate()\n  ));\n\n  // Ajustar al jueves de la semana actual\n  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));\n\n  // Primer día del año\n  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));\n\n  // Calcular número de semana\n  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);\n\n  return weekNo;\n})()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "4f41c0d1-3f31-4e78-ae00-ed0af1ff6c7c",
+              "name": "Numero de dia",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    const day = date.toLocaleString('en-US', {     timeZone: 'America/El_Salvador',     weekday: 'short'   });    const jsDay = new Date(date.toLocaleString('en-US', {      timeZone: 'America/El_Salvador'    })).getDay();    return jsDay === 0 ? 7 : jsDay; })() }}",
+              "type": "string"
+            },
+            {
+              "id": "10e2192a-1a80-4670-a06b-961e3b4fc974",
+              "name": "Dia",
+              "value": "={{ (() => {   const timestamp = Number($json.messages[0].timestamp);   const date = new Date(timestamp * 1000);    const dia = date.toLocaleDateString('es-SV', {     timeZone: 'America/El_Salvador',     weekday: 'long'   });    return dia.charAt(0).toUpperCase() + dia.slice(1); })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        432
+      ],
+      "id": "688780d2-b56b-4beb-af32-f3d00fa98d34",
+      "name": "Definiciones"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Contexto }}",
+        "options": {
+          "systemMessage": "=Eres un Agente Financiero Inteligente que convierte órdenes en lenguaje natural\nen operaciones estructuradas para una base de datos financiera.\n\nTienes acceso a una tool externa:\n\nTool disponible:\n- Google Sheet: \"Transactions\"\n\nEsta hoja contiene todas las transacciones registradas y tiene una columna \"row_number\"\nque identifica cada registro.\n\n--------------------------------------------------\nFLUJO DE TRABAJO\n--------------------------------------------------\n\n1. Analizar el mensaje del usuario.\n2. Determinar el tipo de operación: CREATE, UPDATE, DELETE o READ.\n3. Si es UPDATE o DELETE:\n   - Usar la tool \"Transactions\".\n   - Buscar la transacción correcta según:\n        • monto\n        • fecha (hoy, ayer, fecha específica)\n        • medio (Efectivo / Tarjeta)\n        • descripción similar\n   - Obtener el row_number.\n   - Obtener TODOS los valores del registro encontrado.\n4. Construir el JSON final.\n5. Responder únicamente con el JSON estructurado.\n6. No explicar nada.\n\n--------------------------------------------------\nINTERPRETACIÓN DEL CRUD\n--------------------------------------------------\n\nCREATE → genera, crea, agrega, registra\nUPDATE → actualiza, modifica, cambia\nDELETE → elimina, borra\nREAD → muestra, consulta, ver\n\nSi no se detecta claramente → asumir CREATE.\n\n--------------------------------------------------\nREGLAS DE NEGOCIO\n--------------------------------------------------\n\nTIPO:\n- \"gasto\" → GASTO\n- \"ingreso\" → INGRESO\n- En UPDATE o DELETE → inferir del registro encontrado.\n\nMONTO:\n- Extraer número aunque tenga \"$\".\n- Devolver como número.\n- Si no aplica → null.\n\nMEDIO:\n- \"efectivo\" → Efectivo\n- \"tarjeta\" → Tarjeta\n- En CREATE → si no se menciona, asumir \"Efectivo\".\n- En UPDATE → si no se menciona, conservar el original del registro encontrado.\n\nCONCEPTO:\n- Extraer frase después de \"concepto de\".\n- Si no existe, inferir resumen breve (máximo 4 palabras).\n- Mantener en minúsculas.\n\nDESCRIPCION:\n- Versión limpia del concepto.\n- Primera letra en mayúscula.\n\n--------------------------------------------------\nCATEGORIAS VALIDAS (RESPETAR EXACTAMENTE)\n--------------------------------------------------\n\nComida\nVivienda\nGasolina\nGastos personales\nColegio\nServicios Basicos\nOtros\nAlquiler\nSalario\nTransferencia\n\nSi no coincide exactamente → usar \"Otros\".\n\n--------------------------------------------------\nINTERPRETACIÓN DE FECHAS HUMANAS\n--------------------------------------------------\n\n\"hoy\" → fecha actual\n\"ayer\" → fecha actual -1 día\n\"20 de febrero\" → convertir a formato DD/MM/YYYY usando el año actual\n\n--------------------------------------------------\nFORMATO DE RESPUESTA (SIEMPRE EL MISMO)\n--------------------------------------------------\n\n{\n  \"crud\": \"\",\n  \"row_number\": null,\n  \"tipo\": null,\n  \"monto\": null,\n  \"concepto\": null,\n  \"descripcion\": null,\n  \"medio\": null,\n  \"categoria\": null\n}\n\n--------------------------------------------------\nREGLAS IMPORTANTES\n--------------------------------------------------\n\n- SIEMPRE devolver todas las claves.\n- Si un campo no aplica → null.\n- En UPDATE → devolver el registro completo ya modificado.\n- En DELETE → devolver los datos encontrados junto con el row_number.\n- Nunca devolver texto fuera del JSON.\n- Nunca inventar valores si la tool no devuelve coincidencia.\n\n\nEjemplos:\n\n1️⃣ CREATE\n🧾 Mensaje:\n\ngenera un gasto por $5 en concepto de gastos de tienda en categoria comida\n\n✅ JSON esperado:\n{\n  \"crud\": \"CREATE\",\n  \"row_number\": null,\n  \"tipo\": \"GASTO\",\n  \"monto\": 5,\n  \"concepto\": \"gastos de tienda\",\n  \"descripcion\": \"Gastos de tienda\",\n  \"medio\": \"Efectivo\",\n  \"categoria\": \"Comida\"\n}\n🟡 2️⃣ UPDATE (cambiar medio)\n🧾 Mensaje:\n\nactualiza el gasto por $39 del 19 de febrero y cambialo a efectivo\n\n(La tool encuentra row_number 8)\n\n✅ JSON esperado:\n{\n  \"crud\": \"UPDATE\",\n  \"row_number\": 8,\n  \"tipo\": \"GASTO\",\n  \"monto\": 39,\n  \"concepto\": \"pago de internet\",\n  \"descripcion\": \"Pago de internet\",\n  \"medio\": \"Efectivo\",\n  \"categoria\": \"Servicios Basicos\"\n}\n\nObserva:\n\nToma todos los valores originales.\n\nSolo cambia el medio.\n\n🟠 3️⃣ UPDATE (cambiar monto y categoría)\n🧾 Mensaje:\n\nmodifica el gasto por $7 del 20 de febrero y cambialo a $10 en categoria comida\n\n(Encuentra row_number 13)\n\n✅ JSON esperado:\n{\n  \"crud\": \"UPDATE\",\n  \"row_number\": 13,\n  \"tipo\": \"GASTO\",\n  \"monto\": 10,\n  \"concepto\": \"gasolina\",\n  \"descripcion\": \"Gasolina\",\n  \"medio\": \"Efectivo\",\n  \"categoria\": \"Comida\"\n}\n\nObserva:\n\nCambia monto.\n\nCambia categoría.\n\nMantiene medio original.\n\n🔴 4️⃣ DELETE\n🧾 Mensaje:\n\nelimina el gasto por $2 ingresado ayer\n\n(Encuentra row_number 17)\n\n✅ JSON esperado:\n{\n  \"crud\": \"DELETE\",\n  \"row_number\": 17,\n  \"tipo\": \"GASTO\",\n  \"monto\": 2,\n  \"concepto\": \"compras de pan dulce\",\n  \"descripcion\": \"Compras de pan dulce\",\n  \"medio\": \"Efectivo\",\n  \"categoria\": \"Comida\"\n}\n\nObserva:\n\nDevuelve todos los datos del registro.\n\nNo pone nada en null excepto lo que realmente no exista.\n\n🔵 5️⃣ READ\n🧾 Mensaje:\n\nmuestra mis gastos de hoy\n\n✅ JSON esperado:\n{\n  \"crud\": \"READ\",\n  \"row_number\": null,\n  \"tipo\": null,\n  \"monto\": null,\n  \"concepto\": null,\n  \"descripcion\": null,\n  \"medio\": null,\n  \"categoria\": null\n}\n🧠 Caso especial: No encuentra coincidencia\n🧾 Mensaje:\n\nelimina el gasto por $999 del 1 de enero\n\n✅ JSON esperado:\n{\n  \"crud\": \"DELETE\",\n  \"row_number\": null,\n  \"tipo\": null,\n  \"monto\": null,\n  \"concepto\": null,\n  \"descripcion\": null,\n  \"medio\": null,\n  \"categoria\": null\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        560,
+        432
+      ],
+      "id": "3af23040-9e84-4367-8248-4c63cfbd5205",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        592
+      ],
+      "id": "1f0ad0aa-a22a-4ab0-bf7e-ecdc3a53b30c",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3f124a8f-53d2-4e30-a781-5aa736dc23d1",
+              "leftValue": "={{ $json.tipo }}",
+              "rightValue": "GASTO",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1136,
+        432
+      ],
+      "id": "2427a8a2-85ff-4187-b3e0-955ba01aac20",
+      "name": "IS GASTO?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "CREATE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50d26c10-83aa-4de2-9606-5632b071d7e6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Crear"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3c733786-12fb-46cc-9d49-cdbdb3a81d7d",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "UPDATE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Actualizar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "885e41f2-499a-4b4d-a302-76621cf2240c",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "DELETE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Borrar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "92ef28da-b932-4c40-9a22-b97860c97d00",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "READ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Leer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1360,
+        -48
+      ],
+      "id": "0ad352be-2808-4d15-a00f-51353374c560",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        704,
+        592
+      ],
+      "id": "4dc88e38-6702-4ef8-a49d-203d6813e91a",
+      "name": "Transactions",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: JSON.parse(item.json.output)\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        912,
+        432
+      ],
+      "id": "eb69fb2d-285e-4e04-80f9-5af86ad1ff08",
+      "name": "Output a Json"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Importe g": "={{ $json.monto }}",
+            "Tipo g": "={{ $json.medio }}",
+            "Descripción g": "={{ $json.descripcion }}",
+            "Categoría g": "={{ $json.categoria }}",
+            "Fecha g": "={{ $('Definiciones').item.json.Fecha }}",
+            "Hora g": "={{ $('Definiciones').item.json.Hora }}",
+            "Semana g": "={{ $('Definiciones').item.json[\"Numero de semana\"] }}",
+            "NroD g": "={{ $('Definiciones').item.json[\"Numero de dia\"] }}",
+            "Dia g": "={{ $('Definiciones').item.json.Dia }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha g",
+              "displayName": "Fecha g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora g",
+              "displayName": "Hora g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Semana g",
+              "displayName": "Semana g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NroD g",
+              "displayName": "NroD g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dia g",
+              "displayName": "Dia g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importe g",
+              "displayName": "Importe g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo g",
+              "displayName": "Tipo g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Descripción g",
+              "displayName": "Descripción g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoría g",
+              "displayName": "Categoría g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha I",
+              "displayName": "Fecha I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hora I",
+              "displayName": "Hora I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Semana I",
+              "displayName": "Semana I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NroD I",
+              "displayName": "NroD I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Dia I",
+              "displayName": "Dia I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Importe I",
+              "displayName": "Importe I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tipo i",
+              "displayName": "Tipo i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Descripcion i",
+              "displayName": "Descripcion i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Categoría I",
+              "displayName": "Categoría I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1872,
+        -736
+      ],
+      "id": "62c00217-1bf3-4e28-9454-51171bd889b6",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3200,
+        -528
+      ],
+      "id": "574290f5-b60c-4203-81a5-6ac5dee56114",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3472,
+        -672
+      ],
+      "id": "fa2367b2-a6fa-4f7c-ada6-2837520005a4",
+      "name": "Send message",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        3296,
+        -528
+      ],
+      "id": "4dc8fc8d-bfad-4148-96af-a2caf97c67c5",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2096,
+        -528
+      ],
+      "id": "d778ffee-994e-42c3-8971-05fdb1bddf33",
+      "name": "Wait",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        -528
+      ],
+      "id": "81fc8a8e-44bc-4fc2-83d5-573d6be73736",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2384,
+        -528
+      ],
+      "id": "3e2d70d0-009d-4d7b-a0cb-47bdfb54d730",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $json.data[0].Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "={{ $json.data[1][\"Confirmacion de operacion\"] }}",
+              "type": "array"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.data[2].ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.data[2].mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.data[2].balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3024,
+        -672
+      ],
+      "id": "028d5529-db0f-4fc6-afc8-7f20a429cd0c",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Confirmacion de operacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        -672
+      ],
+      "id": "ea0c6a48-5e59-42ed-ae49-ddfb01b63a7d",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2864,
+        -672
+      ],
+      "id": "327a5108-b631-4068-adcc-c24a2fabd2ff",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2704,
+        -688
+      ],
+      "id": "56852003-24b3-4007-802e-c21f20fcbe24",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28fcc206-40f5-4492-a714-0728a4bc3026",
+              "name": "Contexto",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2384,
+        -832
+      ],
+      "id": "d2314ddb-5f00-49f4-b303-d9c49710b6e9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha I": "={{ $('Definiciones').item.json.Fecha }}",
+            "Hora I": "={{ $('Definiciones').item.json.Hora }}",
+            "Semana I": "={{ $('Definiciones').item.json[\"Numero de semana\"] }}",
+            "NroD I": "={{ $('Definiciones').item.json[\"Numero de dia\"] }}",
+            "Dia I": "={{ $('Definiciones').item.json.Dia }}",
+            "Importe I": "={{ $json.monto }}",
+            "Tipo i": "={{ $json.medio }}",
+            "Descripcion i": "={{ $json.descripcion }}",
+            "Categoría I": "={{ $json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha g",
+              "displayName": "Fecha g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hora g",
+              "displayName": "Hora g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Semana g",
+              "displayName": "Semana g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NroD g",
+              "displayName": "NroD g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Dia g",
+              "displayName": "Dia g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Importe g",
+              "displayName": "Importe g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tipo g",
+              "displayName": "Tipo g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Descripción g",
+              "displayName": "Descripción g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Categoría g",
+              "displayName": "Categoría g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Fecha I",
+              "displayName": "Fecha I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Hora I",
+              "displayName": "Hora I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Semana I",
+              "displayName": "Semana I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NroD I",
+              "displayName": "NroD I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Dia I",
+              "displayName": "Dia I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Importe I",
+              "displayName": "Importe I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tipo i",
+              "displayName": "Tipo i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Descripcion i",
+              "displayName": "Descripcion i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Categoría I",
+              "displayName": "Categoría I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        1280
+      ],
+      "id": "acf3cbbd-37da-4f5c-a50e-6432a892ea99",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación.\n\nGenera un resumen SOLO cuando recibas una confirmación de creación.\nNo uses tools.\nNo recalcules nada.\nUsa únicamente los datos recibidos.\n\nENTRADA\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array.\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nTotal categoría (semana):\nBuscar en:\n\ngastos → categoría → medio\n\ningresos → categoría → medio\nSi no existe → $0\n\nBalance mensual:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\n\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\nNo recalcular.\n\nSALIDA\n\nExactamente 5 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato:\n\n1️⃣ Emoji + Tipo + $importe + descripción\n2️⃣ Emoji + Categoría\n3️⃣ Emoji + Total categoría semana\n4️⃣ Emoji + Balance mensual del medio\n5️⃣ Emoji + Mensaje motivacional corto\n\nREGLAS\n\nMostrar siempre $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nSiempre 5 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3248,
+        1328
+      ],
+      "id": "5ba57d0c-d550-452f-a75d-bb65eda5206b",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3248,
+        1472
+      ],
+      "id": "16d0aec2-1af3-47e7-94cc-fd657e663274",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3520,
+        1328
+      ],
+      "id": "ba203bbe-6463-46f6-aff3-036c56a284d1",
+      "name": "Send message1",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        3344,
+        1472
+      ],
+      "id": "512d1064-dc62-48a1-8bda-9a21576d9574",
+      "name": "Postgres Chat Memory1",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        1472
+      ],
+      "id": "f21a47dd-c835-4f5b-a9ec-25a61e394d6d",
+      "name": "Wait1",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2304,
+        1472
+      ],
+      "id": "a439671e-8ead-4eff-8d6c-f282e6a1595b",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        1472
+      ],
+      "id": "63bdf2c2-8379-4fde-b909-aefb53788171",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $json.data[0].Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "={{ $json.data[1][\"Confirmacion de operacion\"] }}",
+              "type": "array"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.data[2].ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.data[2].mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.data[2].balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3088,
+        1328
+      ],
+      "id": "08ff65c2-2de9-403b-ac2a-624a1eec5f8a",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Confirmacion de operacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        1312
+      ],
+      "id": "7d81ed43-867d-43c2-8dfd-118114cac904",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        1328
+      ],
+      "id": "14d4c3f5-fe37-4c1e-afec-6447cb362ed5",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2768,
+        1312
+      ],
+      "id": "0734126b-51ba-4eb5-9499-34b080fcc527",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "28fcc206-40f5-4492-a714-0728a4bc3026",
+              "name": "Contexto",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        1152
+      ],
+      "id": "cdfeb370-2706-4715-bdcc-2997d3b4a633",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        416
+      ],
+      "id": "579d5613-2802-432e-b971-6722c9bb37d8",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "Lectura de gastos e ingresos",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2096,
+        416
+      ],
+      "id": "44700397-f6f3-4ddf-ba2c-34d2842625c0",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37197794-cc23-4fdc-8c84-11fb00aa1cb1",
+              "name": "Contexto",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1920,
+        272
+      ],
+      "id": "fb373500-7de9-4f07-8e88-0cc2f39af164",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2320,
+        320
+      ],
+      "id": "55c60cee-b3c0-413d-b746-b758ec896bbb",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        464
+      ],
+      "id": "0facc5db-670f-4079-b0c9-3129ce1c9e09",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        2784,
+        320
+      ],
+      "id": "ed82be4b-42cc-4d33-9912-38c6fb49ebf0",
+      "name": "Send message2",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2592,
+        464
+      ],
+      "id": "87339b47-a85f-4879-ba8e-a407779e7048",
+      "name": "Postgres Chat Memory2",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación.\n\nGenera un resumen SOLO cuando recibas una confirmación de creación.\nNo uses tools.\nNo recalcules nada.\nUsa únicamente los datos recibidos.\n\nENTRADA\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array.\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nTotal categoría (semana):\nBuscar en:\n\ngastos → categoría → medio\n\ningresos → categoría → medio\nSi no existe → $0\n\nBalance mensual:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\n\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\nNo recalcular.\n\nSALIDA\n\nExactamente 5 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato:\n\n1️⃣ Emoji + Tipo + $importe + descripción\n2️⃣ Emoji + Categoría\n3️⃣ Emoji + Total categoría semana\n4️⃣ Emoji + Balance mensual del medio\n5️⃣ Emoji + Mensaje motivacional corto\n\nREGLAS\n\nMostrar siempre $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nSiempre 5 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3200,
+        -672
+      ],
+      "id": "4818badc-f5af-4582-8eea-c839cf66b57a",
+      "name": "Conifirmacion de gasto"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json.Contexto }}\n# Lectura de ingresos y gastos: {{ $json['Lectura de gastos e ingresos'].toJsonString() }}",
+        "options": {
+          "systemMessage": "=Eres un Agente de Lectura Financiera.\n\nTu función es analizar el mensaje del usuario y responder usando ÚNICAMENTE la información proporcionada.\n\nNo inventes datos.\nNo uses tools.\nNo agregues explicaciones internas.\n\nENTRADA\n\nMensaje del usuario: {{ $json.Contexto }}\nLectura de ingresos y gastos: {{ $json['Lectura de gastos e ingresos'].toJsonString() }}\n\nESTRUCTURA\n\nCampos con sufijo \"g\" → GASTOS\nCampos con sufijo \"I\" o \"i\" → INGRESOS\n\nSi campos g tienen datos → es GASTO.\nSi campos I tienen datos → es INGRESO.\n\nGASTOS:\n\nFecha g\n\nHora g\n\nImporte g\n\nTipo g\n\nDescripción g\n\nCategoría g\n\nINGRESOS:\n\nFecha I\n\nHora I\n\nImporte I\n\nTipo i\n\nDescripcion i\n\nCategoría I\n\nPROCESO\n\nDetectar intención del usuario.\n\nFiltrar según lo solicitado.\n\nSi pide “últimos”, ordenar por row_number DESC.\n\nLimitar cantidad si se especifica.\n\nNo mezclar gastos e ingresos salvo que lo pidan.\n\nSi pide total, sumar solo los registros filtrados.\n\nFORMATO DE RESPUESTA\n\nSiempre usar emojis.\n\nSi enumera movimientos:\n\n📌 Título corto según la consulta\n\nLuego enumerar así:\n\n1️⃣ 📅 Fecha – 💵 $Importe – 📝 Descripción – 💳 Medio\n\n⚠️ NO mostrar la categoría.\nPriorizar siempre la descripción como detalle principal.\n\nEjemplo:\n\n1️⃣ 📅 22/02/2026 – 💵 $10 – 📝 Indriver – 💳 Efectivo\n\nSi incluye total:\n\n💰 Total: $XXX\n\nSi no hay resultados:\n\n⚠️ No se encontraron registros.\n\nREGLAS\n\nSiempre mostrar símbolo $\n\nRespetar mayúsculas originales\n\nNo responder en JSON\n\nNo explicar el proceso\n\nRespuesta clara, profesional y con emojis\n\nNo agregar texto innecesario\n\nNo mostrar la categoría en la respuesta"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2496,
+        320
+      ],
+      "id": "cd731658-e47a-4593-a5b2-4e839331a2dd",
+      "name": "Confirmacion de lectura"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1872,
+        0
+      ],
+      "id": "4aa374f0-54a3-4262-ad0c-0cf12aad36b0",
+      "name": "Delete rows or columns from sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2016,
+        0
+      ],
+      "id": "eaa80a04-0756-49fa-bd32-cce20de0cfac",
+      "name": "Wait2",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2176,
+        0
+      ],
+      "id": "2eb3f1ab-8499-4d3d-82b1-42e1e402a9b4",
+      "name": "Get row(s) in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        0
+      ],
+      "id": "346af395-577c-4045-9be9-70fb721466bf",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2656,
+        144
+      ],
+      "id": "701ded6f-0b77-4c7a-b32b-9edd8eaf66d1",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        2928,
+        0
+      ],
+      "id": "b7fcd953-11e9-46a1-8bf5-3a072ba8fe2c",
+      "name": "Send message3",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2752,
+        144
+      ],
+      "id": "8e252b32-e05c-4573-bf71-45b224939297",
+      "name": "Postgres Chat Memory3",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "={{ $('Delete rows or columns from sheet').item.json.success }}",
+              "type": "string"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2512,
+        0
+      ],
+      "id": "3790d521-8d14-46f5-94da-6a9bb15e74e2",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1872,
+        -288
+      ],
+      "id": "0e4d6e7d-2f13-4d1c-8c20-5a62a283c181",
+      "name": "Delete rows or columns from sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha g": "={{ $('Definiciones').item.json.Fecha }}",
+            "Hora g": "={{ $('Definiciones').item.json.Hora }}",
+            "Semana g": "={{ $('Definiciones').item.json[\"Numero de semana\"] }}",
+            "NroD g": "={{ $('Definiciones').item.json[\"Numero de dia\"] }}",
+            "Dia g": "={{ $('Definiciones').item.json.Dia }}",
+            "Importe g": "={{ $('Output a Json').item.json.monto }}",
+            "Descripción g": "={{ $('Output a Json').item.json.concepto }}",
+            "Categoría g": "={{ $('Output a Json').item.json.categoria }}",
+            "Tipo g": "={{ $('Output a Json').item.json.medio }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha g",
+              "displayName": "Fecha g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora g",
+              "displayName": "Hora g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Semana g",
+              "displayName": "Semana g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "NroD g",
+              "displayName": "NroD g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Dia g",
+              "displayName": "Dia g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Importe g",
+              "displayName": "Importe g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo g",
+              "displayName": "Tipo g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Descripción g",
+              "displayName": "Descripción g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoría g",
+              "displayName": "Categoría g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha I",
+              "displayName": "Fecha I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hora I",
+              "displayName": "Hora I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Semana I",
+              "displayName": "Semana I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NroD I",
+              "displayName": "NroD I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Dia I",
+              "displayName": "Dia I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Importe I",
+              "displayName": "Importe I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tipo i",
+              "displayName": "Tipo i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Descripcion i",
+              "displayName": "Descripcion i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Categoría I",
+              "displayName": "Categoría I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2048,
+        -288
+      ],
+      "id": "a87f3b84-1698-4a49-8aae-13575b415006",
+      "name": "Append row in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2224,
+        -288
+      ],
+      "id": "b3d94276-4b25-40e0-93b0-a477cded717f",
+      "name": "Wait3",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2384,
+        -288
+      ],
+      "id": "27982c79-4128-4597-b052-2c0aece7be62",
+      "name": "Get row(s) in sheet4",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2544,
+        -288
+      ],
+      "id": "a976c823-3e74-401a-a1ac-0b99b37b42ed",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2912,
+        -144
+      ],
+      "id": "a5ecb7f9-ed1b-40cc-bae1-7d06dbc6a94d",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3216,
+        -288
+      ],
+      "id": "3ba72a11-dc89-49a7-8d82-76f9de8044d7",
+      "name": "Send message4",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        3008,
+        -144
+      ],
+      "id": "50811f98-3ed7-4323-afc2-c67ba460d6cb",
+      "name": "Postgres Chat Memory4",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2720,
+        -288
+      ],
+      "id": "b41fb5b8-9763-49e5-8f37-6411b06ca9b0",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación de Actualización.\n\nTu función es generar un mensaje claro cuando se actualiza una transacción financiera.\n\nNo uses tools.\nNo recalcules balances generales.\nUsa únicamente la información recibida.\n\nENTRADA\n\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array (movimiento actualizado).\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nDeterminar si es GASTO o INGRESO\n\nObtener total actual de la categoría en la semana:\n\nSi es GASTO:\nBuscar en gastos → categoría → medio\n\nSi es INGRESO:\nBuscar en ingresos → categoría → medio\n\nSi no existe → $0\n\nObtener balance mensual del medio afectado:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\n\nNo recalcular.\nNo modificar valores.\n\nSALIDA\n\nGenerar EXACTAMENTE 6 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato obligatorio:\n\n1️⃣ 🔄 Actualización realizada con éxito.\n\n2️⃣ 🧾 Movimiento actualizado: {GASTO/INGRESO} de $importe en tipo.\n\n3️⃣ 📝 Descripción: nombre_descripción.\n\n4️⃣ 📊 Total actual en esta categoría (semana): $XXX.\n\n5️⃣ 💰 Balance mensual actual en tipo: $XXX.\n\n6️⃣ 📌 Mensaje breve sobre control o impacto financiero.\n\nREGLAS\n\nMostrar siempre símbolo $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nNo explicar el proceso\n\nSiempre 6 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2912,
+        -288
+      ],
+      "id": "9158a674-d724-40ce-9e02-ea358368ce99",
+      "name": "Conifirmacion de Actualizacion"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación de Eliminación.\n\nTu función es generar un mensaje claro cuando se elimina una transacción financiera.\n\nNo uses tools.\nNo recalcules balances generales.\nUsa únicamente la información recibida.\n\nENTRADA\n\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array (movimiento eliminado).\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nDeterminar si era GASTO o INGRESO\n\nObtener total actual de la categoría en la semana:\n\nSi era GASTO:\nBuscar en gastos → categoría → medio\n\nSi era INGRESO:\nBuscar en ingresos → categoría → medio\n\nSi no existe → $0\n\nObtener balance mensual del medio afectado:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\n\nNo recalcular.\nNo modificar valores.\n\nSALIDA\n\nGenerar EXACTAMENTE 6 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato obligatorio:\n\n1️⃣ ✅ Confirmación de borrado exitosa.\n\n2️⃣ 🧾 Se eliminó un {GASTO/INGRESO} de $importe en tipo.\n\n3️⃣ 📂 Categoría: nombre_categoria.\n\n4️⃣ 📊 Total actual en esta categoría (semana): $XXX.\n\n5️⃣ 💰 Balance mensual actual en tipo: $XXX.\n\n6️⃣ 📌 Mensaje breve sobre impacto financiero o control del balance.\n\nREGLAS\n\nMostrar siempre símbolo $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nNo explicar el proceso\n\nSiempre 6 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2656,
+        0
+      ],
+      "id": "877208f0-191e-49ad-8735-15aad0714d04",
+      "name": "Conifirmacion de Borrado"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "92ef28da-b932-4c40-9a22-b97860c97d00",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "READ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Leer"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "885e41f2-499a-4b4d-a302-76621cf2240c",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "DELETE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Borrar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "3c733786-12fb-46cc-9d49-cdbdb3a81d7d",
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "UPDATE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Actualizar"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.crud }}",
+                    "rightValue": "CREATE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50d26c10-83aa-4de2-9606-5632b071d7e6"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Crear"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1376,
+        800
+      ],
+      "id": "9510d5f5-4a47-41ca-8933-58a049882860",
+      "name": "Switch2"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1824,
+        672
+      ],
+      "id": "c4b36943-87af-4655-a7b0-3db3c2f784b7",
+      "name": "Delete rows or columns from sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1968,
+        672
+      ],
+      "id": "618a8d53-a754-4476-9d27-7568f939da9e",
+      "name": "Wait4",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2128,
+        672
+      ],
+      "id": "59455ea4-4e87-456c-ba9b-b4d25ec2c45c",
+      "name": "Get row(s) in sheet5",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2288,
+        672
+      ],
+      "id": "f8801e9c-3102-47e5-b3d5-896f4b97a027",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2608,
+        816
+      ],
+      "id": "493c2c4e-6bae-4080-b3dd-d3084d496eab",
+      "name": "OpenAI Chat Model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        672
+      ],
+      "id": "10ac0200-bce9-4c03-83c1-f1893cf3da4e",
+      "name": "Send message5",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2704,
+        816
+      ],
+      "id": "b2f24fd9-5f63-432c-be85-4ca8539ab144",
+      "name": "Postgres Chat Memory5",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "={{ $('Delete rows or columns from sheet2').item.json.success }}",
+              "type": "string"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2464,
+        672
+      ],
+      "id": "789eb105-62bf-4a67-a9f0-69a142da25ed",
+      "name": "Edit Fields7"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1760,
+        928
+      ],
+      "id": "684469d5-727a-4ee9-93f9-e8fe428d05ab",
+      "name": "Delete rows or columns from sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha I": "={{ $('Definiciones').item.json.Fecha }}",
+            "Hora I": "={{ $('Definiciones').item.json.Hora }}",
+            "Semana I": "={{ $('Definiciones').item.json[\"Numero de semana\"] }}",
+            "NroD I": "={{ $('Definiciones').item.json[\"Numero de dia\"] }}",
+            "Dia I": "={{ $('Definiciones').item.json.Dia }}",
+            "Importe I": "={{ $('Output a Json').item.json.monto }}",
+            "Descripcion i": "={{ $('Output a Json').item.json.concepto }}",
+            "Tipo i": "={{ $('Output a Json').item.json.medio }}",
+            "Categoría I": "={{ $('Output a Json').item.json.categoria }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha g",
+              "displayName": "Fecha g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Hora g",
+              "displayName": "Hora g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Semana g",
+              "displayName": "Semana g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "NroD g",
+              "displayName": "NroD g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Dia g",
+              "displayName": "Dia g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Importe g",
+              "displayName": "Importe g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Tipo g",
+              "displayName": "Tipo g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Descripción g",
+              "displayName": "Descripción g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Categoría g",
+              "displayName": "Categoría g",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Fecha I",
+              "displayName": "Fecha I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Hora I",
+              "displayName": "Hora I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Semana I",
+              "displayName": "Semana I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "NroD I",
+              "displayName": "NroD I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Dia I",
+              "displayName": "Dia I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Importe I",
+              "displayName": "Importe I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Tipo i",
+              "displayName": "Tipo i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Descripcion i",
+              "displayName": "Descripcion i",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Categoría I",
+              "displayName": "Categoría I",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1936,
+        928
+      ],
+      "id": "8dd093e8-0020-4904-9791-2e8c860eb4de",
+      "name": "Append row in sheet3",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2112,
+        928
+      ],
+      "id": "82f8e5d6-164a-43d3-ba96-f2ba6930bfd4",
+      "name": "Wait5",
+      "webhookId": "f961421d-4e83-4c8b-a9d8-2dec93e62c46"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs",
+          "mode": "list",
+          "cachedResultName": "Presupuesto MENSUAL",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1732160294,
+          "mode": "list",
+          "cachedResultName": "Transacciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13daSX0QFWbRcJ3X2aA4AkLjSSQFHbQvDDl1o7EkLCYs/edit#gid=1732160294"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2272,
+        928
+      ],
+      "id": "39c3ec54-410b-46fa-92b2-3d4f40fd66a3",
+      "name": "Get row(s) in sheet6",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "O0WYB047tVfyoSfJ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener última semana automáticamente\nconst semanas = items\n  .map(i => Number(i.json[\"Semana g\"] || i.json[\"Semana I\"] || 0))\n  .filter(n => n > 0);\n\nconst ultimaSemana = Math.max(...semanas);\n\n// Obtener mes actual basado en fechas existentes\nfunction getMes(fecha) {\n  if (!fecha) return null;\n  const [dia, mes, anio] = fecha.split(\"/\");\n  return mes + \"/\" + anio;\n}\n\n// Detectar mes más reciente\nconst meses = items\n  .map(i => getMes(i.json[\"Fecha g\"] || i.json[\"Fecha I\"]))\n  .filter(m => m);\n\nconst mesActual = meses.sort().pop();\n\n// Estructuras\nlet resumen = {\n  ultimaSemana: {\n    gastos: {},\n    ingresos: {}\n  },\n  mensual: {\n    gastos: { Efectivo: 0, Tarjeta: 0 },\n    ingresos: { Efectivo: 0, Tarjeta: 0 }\n  }\n};\n\n// Recorrer datos\nfor (const item of items) {\n  const data = item.json;\n\n  // ----------- GASTOS (g) -----------\n  const semanaG = Number(data[\"Semana g\"]);\n  const tipoG = data[\"Tipo g\"];\n  const categoriaG = data[\"Categoría g\"];\n  const importeG = Number(data[\"Importe g\"] || 0);\n  const mesG = getMes(data[\"Fecha g\"]);\n\n  if (importeG > 0) {\n\n    // Última semana\n    if (semanaG === ultimaSemana) {\n      if (!resumen.ultimaSemana.gastos[categoriaG]) {\n        resumen.ultimaSemana.gastos[categoriaG] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.gastos[categoriaG][tipoG] += importeG;\n    }\n\n    // Mensual\n    if (mesG === mesActual) {\n      resumen.mensual.gastos[tipoG] += importeG;\n    }\n  }\n\n  // ----------- INGRESOS (i) -----------\n  const semanaI = Number(data[\"Semana I\"]);\n  const tipoI = data[\"Tipo i\"];\n  const categoriaI = data[\"Categoría I\"];\n  const importeI = Number(data[\"Importe I\"] || 0);\n  const mesI = getMes(data[\"Fecha I\"]);\n\n  if (importeI > 0) {\n\n    // Última semana\n    if (semanaI === ultimaSemana) {\n      if (!resumen.ultimaSemana.ingresos[categoriaI]) {\n        resumen.ultimaSemana.ingresos[categoriaI] = { Efectivo: 0, Tarjeta: 0 };\n      }\n      resumen.ultimaSemana.ingresos[categoriaI][tipoI] += importeI;\n    }\n\n    // Mensual\n    if (mesI === mesActual) {\n      resumen.mensual.ingresos[tipoI] += importeI;\n    }\n  }\n}\n\n// ----------- BALANCE MENSUAL -----------\nconst balance = {\n  Efectivo:\n    resumen.mensual.ingresos.Efectivo -\n    resumen.mensual.gastos.Efectivo,\n  Tarjeta:\n    resumen.mensual.ingresos.Tarjeta -\n    resumen.mensual.gastos.Tarjeta\n};\n\nbalance.Total = balance.Efectivo + balance.Tarjeta;\n\nresumen.balanceMensual = balance;\n\nreturn [{ json: resumen }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2432,
+        928
+      ],
+      "id": "d4aee717-0e62-41d5-b3df-5821a0ffa61b",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2800,
+        1072
+      ],
+      "id": "48fe71c0-ab84-4309-8718-09ca9cf03983",
+      "name": "OpenAI Chat Model7",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "={{ $('Definiciones').item.json.From }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        3104,
+        928
+      ],
+      "id": "3663d112-af1c-442e-bbd7-7d9d9a77bd0a",
+      "name": "Send message6",
+      "webhookId": "c2a2efd2-c05f-49c5-80b7-c869510daf48",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Definiciones').item.json.From }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        2896,
+        1072
+      ],
+      "id": "0fe1cb27-e0d3-45cb-ad2e-90883d49e940",
+      "name": "Postgres Chat Memory6",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e0abe02f-325d-4811-a2c2-5e6a797022f2",
+              "name": "Mensaje de usuario",
+              "value": "={{ $('Definiciones').item.json.Contexto }}",
+              "type": "string"
+            },
+            {
+              "id": "c75fb667-f0fa-48b6-92e1-68ceafd8af97",
+              "name": "Confirmacion de operacion",
+              "value": "=true",
+              "type": "string"
+            },
+            {
+              "id": "a4790101-352b-441d-9965-18dc9ab67490",
+              "name": "Ingresos y gastos de la ultima semana",
+              "value": "={{ $json.ultimaSemana }}",
+              "type": "string"
+            },
+            {
+              "id": "96de3426-c4ac-4648-9867-2e93a092f3f4",
+              "name": "Ingresos y gastos del mes",
+              "value": "={{ $json.mensual }}",
+              "type": "string"
+            },
+            {
+              "id": "88d7c3fb-2208-42ee-b788-cdf4c185e07b",
+              "name": "Balance mensual",
+              "value": "={{ $json.balanceMensual }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2608,
+        928
+      ],
+      "id": "fbb26c59-8f8f-4663-93f8-d1e504d34b76",
+      "name": "Edit Fields8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación de Actualización.\n\nTu función es generar un mensaje claro cuando se actualiza una transacción financiera.\n\nNo uses tools.\nNo recalcules balances generales.\nUsa únicamente la información recibida.\n\nENTRADA\n\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array (movimiento actualizado).\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nDeterminar si es GASTO o INGRESO\n\nObtener total actual de la categoría en la semana:\n\nSi es GASTO:\nBuscar en gastos → categoría → medio\n\nSi es INGRESO:\nBuscar en ingresos → categoría → medio\n\nSi no existe → $0\n\nObtener balance mensual del medio afectado:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\n\nNo recalcular.\nNo modificar valores.\n\nSALIDA\n\nGenerar EXACTAMENTE 6 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato obligatorio:\n\n1️⃣ 🔄 Actualización realizada con éxito.\n\n2️⃣ 🧾 Movimiento actualizado: {GASTO/INGRESO} de $importe en tipo.\n\n3️⃣ 📝 Descripción: nombre_descripción.\n\n4️⃣ 📊 Total actual en esta categoría (semana): $XXX.\n\n5️⃣ 💰 Balance mensual actual en tipo: $XXX.\n\n6️⃣ 📌 Mensaje breve sobre control o impacto financiero.\n\nREGLAS\n\nMostrar siempre símbolo $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nNo explicar el proceso\n\nSiempre 6 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2800,
+        928
+      ],
+      "id": "9fe8f504-2e02-445e-9625-b8ad075bc7a8",
+      "name": "Conifirmacion de Actualizacion1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Mensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\n# Confirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\n# Ingresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\n# Ingresos y gastos del mes: {{ $json[\"Ingresos y gastos del mes\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}",
+        "options": {
+          "systemMessage": "=Eres un Asistente Financiero de Confirmación de Eliminación.\n\nTu función es generar un mensaje claro cuando se elimina una transacción financiera.\n\nNo uses tools.\nNo recalcules balances generales.\nUsa únicamente la información recibida.\n\nENTRADA\n\nMensaje del usuario: {{ $json[\"Mensaje de usuario\"] }}\nConfirmacion de operacion: {{ $json[\"Confirmacion de operacion\"].toJsonString() }}\nIngresos y gastos de la ultima semana: {{ $json[\"Ingresos y gastos de la ultima semana\"] }}\nBalance Mensual: {{ $json[\"Balance mensual\"] }}\n\nPROCESO\n\nConvertir \"Confirmacion de operacion\" a JSON.\n\nTomar el primer objeto del array (movimiento eliminado).\n\nExtraer:\n\nImporte\n\nTipo (Efectivo o Tarjeta)\n\nDescripción\n\nCategoría\n\nDeterminar si era GASTO o INGRESO\n\nObtener total actual de la categoría en la semana:\n\nSi era GASTO:\nBuscar en gastos → categoría → medio\n\nSi era INGRESO:\nBuscar en ingresos → categoría → medio\n\nSi no existe → $0\n\nObtener balance mensual del medio afectado:\n\nSi Tipo = Efectivo → Balance Mensual.Efectivo\nSi Tipo = Tarjeta → Balance Mensual.Tarjeta\n\nNo recalcular.\nNo modificar valores.\n\nSALIDA\n\nGenerar EXACTAMENTE 6 líneas.\nSin JSON.\nSin explicación adicional.\n\nFormato obligatorio:\n\n1️⃣ ✅ Confirmación de borrado exitosa.\n\n2️⃣ 🧾 Se eliminó un {GASTO/INGRESO} de $importe en tipo.\n\n3️⃣ 📂 Categoría: nombre_categoria.\n\n4️⃣ 📊 Total actual en esta categoría (semana): $XXX.\n\n5️⃣ 💰 Balance mensual actual en tipo: $XXX.\n\n6️⃣ 📌 Mensaje breve sobre impacto financiero o control del balance.\n\nREGLAS\n\nMostrar siempre símbolo $\n\nRespetar mayúsculas originales\n\nUn emoji por línea\n\nNo inventar datos\n\nSi falta dato → $0\n\nNo explicar el proceso\n\nSiempre 6 líneas exactas"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2608,
+        672
+      ],
+      "id": "006a966b-5886-48d9-8d87-01154dfdc68d",
+      "name": "Conifirmacion de Borrado1"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "Contenido": " + Finanzas agreguemos un ingreso este día por 400 dólares en efectivo en concepto de adelanto de salario en categoría salarios.",
+          "contacts": [
+            {
+              "profile": {
+                "name": "Daniel"
+              },
+              "wa_id": "50371597740"
+            }
+          ],
+          "messages": [
+            {
+              "from": "50371597740",
+              "id": "wamid.HBgLNTAzNzE1OTc3NDAVAgASGCBBQzAwOThBOEJEMjA5OUE2RTkzOEYzOTA1MkM2RDNFNAA=",
+              "timestamp": "1772243152",
+              "type": "audio",
+              "audio": {
+                "mime_type": "audio/ogg; codecs=opus",
+                "sha256": "LQ+Dkb6K/yTHFMwy7Gc2JGmjrxstwBbJ3qCq02D4vp8=",
+                "id": "4227024160880855",
+                "url": "https://lookaside.fbsbx.com/whatsapp_business/attachments/?mid=4227024160880855&source=webhook&ext=1772243454&hash=ARl0EfmDu4asL8Wo6eMa1s3xuBDWL-whHyyuY1ZJc-nD8A",
+                "voice": true
+              }
+            }
+          ]
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Definiciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definiciones": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Output a Json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IS GASTO?": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transactions": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Output a Json": {
+      "main": [
+        [
+          {
+            "node": "IS GASTO?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete rows or columns from sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conifirmacion de gasto",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conifirmacion de gasto",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Conifirmacion de gasto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Confirmacion de lectura",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory2": {
+      "ai_memory": [
+        [
+          {
+            "node": "Confirmacion de lectura",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Confirmacion de lectura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conifirmacion de gasto": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirmacion de lectura": {
+      "main": [
+        [
+          {
+            "node": "Send message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conifirmacion de Borrado",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory3": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conifirmacion de Borrado",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Conifirmacion de Borrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait3": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet4": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Wait3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory4": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conifirmacion de Actualizacion": {
+      "main": [
+        [
+          {
+            "node": "Send message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conifirmacion de Borrado": {
+      "main": [
+        [
+          {
+            "node": "Send message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete rows or columns from sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete rows or columns from sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet2": {
+      "main": [
+        [
+          {
+            "node": "Wait4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait4": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conifirmacion de Borrado1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory5": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conifirmacion de Borrado1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields7": {
+      "main": [
+        [
+          {
+            "node": "Conifirmacion de Borrado1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet3": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet3": {
+      "main": [
+        [
+          {
+            "node": "Wait5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait5": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory6": {
+      "ai_memory": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields8": {
+      "main": [
+        [
+          {
+            "node": "Conifirmacion de Actualizacion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conifirmacion de Actualizacion1": {
+      "main": [
+        [
+          {
+            "node": "Send message6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conifirmacion de Borrado1": {
+      "main": [
+        [
+          {
+            "node": "Send message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "595ef0ca-33d0-49be-991f-4d7d145902b7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "RlRln3SDwgFlyWLJ",
+  "tags": []
+}

@@ -1,0 +1,1670 @@
+{
+  "name": "Obtener Database",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Database Regular",
+        "formDescription": "Sube Excel",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Sube el archivo aqui",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -240,
+        -96
+      ],
+      "id": "9e644b23-63d5-476f-85d9-a547090c6286",
+      "name": "Form Excel C",
+      "webhookId": "0cc654ba-4649-499f-9aa2-4e5b641b3f20"
+    },
+    {
+      "parameters": {
+        "formTitle": "Database Completa",
+        "formDescription": "Sube Excel",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Sube el archivo aqui",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -272,
+        224
+      ],
+      "id": "82595f0b-dad0-4322-b78e-7d611d5b1b4c",
+      "name": "Form Database",
+      "webhookId": "dbc9912d-8f9a-4de0-8a7a-b28c7b387ae2"
+    },
+    {
+      "parameters": {
+        "formTitle": "Database Prices",
+        "formDescription": "Sube Excell",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Sube el archivo aqui",
+              "fieldType": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -272,
+        560
+      ],
+      "id": "7909ab80-2257-44e3-8cdd-3f087f095b7e",
+      "name": "Form Prices",
+      "webhookId": "11fa5f59-84d9-4b95-a9a8-fe865d0861e9"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "Sube_el_archivo_aqui",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        -80
+      ],
+      "id": "a9250598-df09-416b-bbaf-89b5e658a313",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0288d9eb-5f8f-4266-8045-731e52bc558a",
+              "name": "Proveedor",
+              "value": "={{ $json.__EMPTY_2 }}",
+              "type": "string"
+            },
+            {
+              "id": "ec0d40b4-629a-4793-89dc-b2127a677a40",
+              "name": "Depto",
+              "value": "={{ $json.__EMPTY_3 }}",
+              "type": "string"
+            },
+            {
+              "id": "af0f3e10-7b63-4dd6-a7bf-ead57ab8303a",
+              "name": "Item",
+              "value": "={{ $json.__EMPTY_4 }}",
+              "type": "string"
+            },
+            {
+              "id": "839dcddc-db24-41d5-b16f-83e8fedb954b",
+              "name": "Description",
+              "value": "={{ $json.__EMPTY_5 }}",
+              "type": "string"
+            },
+            {
+              "id": "f3aafc38-930b-4778-9a4c-a04277638ec0",
+              "name": "Qty OH",
+              "value": "={{ $json.__EMPTY_6 }}",
+              "type": "string"
+            },
+            {
+              "id": "df296225-47fe-49dd-8da7-5a581d831eb3",
+              "name": "Av Cost",
+              "value": "={{ $json.__EMPTY_7 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        -80
+      ],
+      "id": "98723e0d-f450-45f7-b80e-0564a5c9f647",
+      "name": "Normalize"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecf0094e-63a7-4f6f-9595-5fd8067017c0",
+              "leftValue": "={{ $json.Depto }}",
+              "rightValue": "D0",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        800,
+        -80
+      ],
+      "id": "47c612f6-4071-43fb-befa-fb8a0fed70c9",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ps_database",
+          "mode": "list",
+          "cachedResultName": "ps_database"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "av_cost": "={{ $json['Av Cost'] }}",
+            "vendor": "={{ $json.Proveedor }}",
+            "dept": "={{ $json.Depto }}",
+            "description": "={{ $json.Description }}",
+            "qty_oh": "={{ $json['Qty OH'] }}",
+            "item": "={{ $json.Item }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "vendor",
+              "displayName": "vendor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "dept",
+              "displayName": "dept",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "item",
+              "displayName": "item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qty_oh",
+              "displayName": "qty_oh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "av_cost",
+              "displayName": "av_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_cost",
+              "displayName": "total_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "volume",
+              "displayName": "volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1184,
+        -80
+      ],
+      "id": "5af62125-b87d-447c-a2fa-fef68b95173d",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4a62757-6586-4906-b847-06b6788983ad",
+              "name": "Proveedor",
+              "value": "={{ $json.Proveedor }}",
+              "type": "string"
+            },
+            {
+              "id": "bafb17e5-a527-4245-88fc-a9c1585d7864",
+              "name": "Depto",
+              "value": "={{ $json.Depto }}",
+              "type": "string"
+            },
+            {
+              "id": "edbbaa67-91c9-4874-81f3-858bbb547c7b",
+              "name": "Item",
+              "value": "={{ $json.Item }}",
+              "type": "string"
+            },
+            {
+              "id": "cc9f89d9-531b-451c-a4bd-d6caefe5e804",
+              "name": "Description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "d2356681-1014-494e-bac7-d2a22d65ed12",
+              "name": "Qty OH",
+              "value": "={{ $json['Qty OH'] }}",
+              "type": "number"
+            },
+            {
+              "id": "e8e842ec-d831-4788-8b24-80af3621ca34",
+              "name": "Av Cost",
+              "value": "={{ $json['Av Cost'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1008,
+        -80
+      ],
+      "id": "a3e5c43b-7da5-45fb-8a9b-7976e2982710",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "TRUNCATE TABLE public.ps_database RESTART IDENTITY CASCADE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -32,
+        0
+      ],
+      "id": "67a04f51-325c-4bea-8308-525551706f25",
+      "name": "Execute a SQL query",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        192,
+        -80
+      ],
+      "id": "b75fadee-7a3c-4157-80bd-52fe1434fb38",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "Sube_el_archivo_aqui",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        240
+      ],
+      "id": "db8b3078-5978-49d9-9520-7fe2347230f9",
+      "name": "Extract from File1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0288d9eb-5f8f-4266-8045-731e52bc558a",
+              "name": "Proveedor",
+              "value": "={{ $json.__EMPTY_2 }}",
+              "type": "string"
+            },
+            {
+              "id": "ec0d40b4-629a-4793-89dc-b2127a677a40",
+              "name": "Depto",
+              "value": "={{ $json.__EMPTY_3 }}",
+              "type": "string"
+            },
+            {
+              "id": "af0f3e10-7b63-4dd6-a7bf-ead57ab8303a",
+              "name": "Item",
+              "value": "={{ $json.__EMPTY_4 }}",
+              "type": "string"
+            },
+            {
+              "id": "839dcddc-db24-41d5-b16f-83e8fedb954b",
+              "name": "Description",
+              "value": "={{ $json.__EMPTY_5 }}",
+              "type": "string"
+            },
+            {
+              "id": "f3aafc38-930b-4778-9a4c-a04277638ec0",
+              "name": "Qty OH",
+              "value": "={{ $json.__EMPTY_6 }}",
+              "type": "string"
+            },
+            {
+              "id": "df296225-47fe-49dd-8da7-5a581d831eb3",
+              "name": "Av Cost",
+              "value": "={{ $json.__EMPTY_7 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        240
+      ],
+      "id": "ce13f1cf-dbb5-4b33-bd6a-72b2e8659654",
+      "name": "Normalize1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecf0094e-63a7-4f6f-9595-5fd8067017c0",
+              "leftValue": "={{ $json.Depto }}",
+              "rightValue": "D0",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "2ab7a674-325d-4868-9975-49d14954747f",
+              "leftValue": "={{ $json[\"Av Cost\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        240
+      ],
+      "id": "5b2e22d8-41ff-46dc-abea-623126eed04b",
+      "name": "Filter1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4a62757-6586-4906-b847-06b6788983ad",
+              "name": "Proveedor",
+              "value": "={{ $json.Proveedor }}",
+              "type": "string"
+            },
+            {
+              "id": "bafb17e5-a527-4245-88fc-a9c1585d7864",
+              "name": "Depto",
+              "value": "={{ $json.Depto }}",
+              "type": "string"
+            },
+            {
+              "id": "edbbaa67-91c9-4874-81f3-858bbb547c7b",
+              "name": "Item",
+              "value": "={{ $json.Item }}",
+              "type": "string"
+            },
+            {
+              "id": "cc9f89d9-531b-451c-a4bd-d6caefe5e804",
+              "name": "Description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "d2356681-1014-494e-bac7-d2a22d65ed12",
+              "name": "Qty OH",
+              "value": "={{ $json['Qty OH'] }}",
+              "type": "number"
+            },
+            {
+              "id": "e8e842ec-d831-4788-8b24-80af3621ca34",
+              "name": "Av Cost",
+              "value": "={{ $json['Av Cost'] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        240
+      ],
+      "id": "d6e4382e-1429-42dd-b78f-bb6d853462a4",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "TRUNCATE TABLE public.ps_database_complete RESTART IDENTITY CASCADE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -48,
+        304
+      ],
+      "id": "9a7ac5c3-aabe-4251-aa63-f3b64c04be4e",
+      "name": "Execute a SQL query1",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        176,
+        240
+      ],
+      "id": "ae19fc47-bada-4635-9afd-e929a1cce5fb",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ps_database_complete",
+          "mode": "list",
+          "cachedResultName": "ps_database_complete"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "vendor": "={{ $json.Proveedor }}",
+            "dept": "={{ $json.Depto }}",
+            "item": "={{ $json.Item }}",
+            "description": "={{ $json.Description }}",
+            "qty_oh": "={{ $json[\"Qty OH\"] }}",
+            "av_cost": "={{ $json[\"Av Cost\"] }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "vendor",
+              "displayName": "vendor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "dept",
+              "displayName": "dept",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "item",
+              "displayName": "item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qty_oh",
+              "displayName": "qty_oh",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "av_cost",
+              "displayName": "av_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_cost",
+              "displayName": "total_cost",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "volume",
+              "displayName": "volume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1200,
+        240
+      ],
+      "id": "c88b36d7-1c30-4637-8506-6f86265f6a70",
+      "name": "Insert rows in a table1",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        240
+      ],
+      "id": "a42e5d37-7146-458d-b7e1-c943472f5c9b",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "50371597740",
+        "textBody": "La base de datos completa ha sido actualizada",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1616,
+        240
+      ],
+      "id": "67bb0e0f-f3bf-4bba-a485-fc61ba079a18",
+      "name": "Send message",
+      "webhookId": "db080583-41de-49dd-a08d-757e6b8fcde0",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        -80
+      ],
+      "id": "7e50abfe-b66c-45c8-b78d-331c30ad28b6",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "50371597740",
+        "textBody": "La base de datos sido actualizada",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        -80
+      ],
+      "id": "98bd13fd-c08b-4694-bd32-a3e8d50d64f3",
+      "name": "Send message1",
+      "webhookId": "db080583-41de-49dd-a08d-757e6b8fcde0",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "binaryPropertyName": "Sube_el_archivo_aqui",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        576
+      ],
+      "id": "7d89937d-e30e-4957-b22f-1dcb73aa2b69",
+      "name": "Extract from File2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0288d9eb-5f8f-4266-8045-731e52bc558a",
+              "name": "Proveedor",
+              "value": "={{ $json[\"2/28/26\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "ec0d40b4-629a-4793-89dc-b2127a677a40",
+              "name": "Depto",
+              "value": "={{ $json.__EMPTY }}",
+              "type": "string"
+            },
+            {
+              "id": "af0f3e10-7b63-4dd6-a7bf-ead57ab8303a",
+              "name": "Item",
+              "value": "={{ $json[\"Warehouse Sequential Runbook\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "839dcddc-db24-41d5-b16f-83e8fedb954b",
+              "name": "Description",
+              "value": "={{ $json.__EMPTY_1 }}",
+              "type": "string"
+            },
+            {
+              "id": "f3aafc38-930b-4778-9a4c-a04277638ec0",
+              "name": "Qty OH",
+              "value": "={{ $json.__EMPTY_6 }}",
+              "type": "string"
+            },
+            {
+              "id": "df296225-47fe-49dd-8da7-5a581d831eb3",
+              "name": "Price",
+              "value": "={{ $json.__EMPTY_2 }}",
+              "type": "string"
+            },
+            {
+              "id": "71f606dc-20fd-41f4-a8f6-f2ac8e95311a",
+              "name": "Status",
+              "value": "={{ $json.__EMPTY_3 }}",
+              "type": "string"
+            },
+            {
+              "id": "6dee63fc-f687-4526-9d2b-431044d80332",
+              "name": "Last week Sales",
+              "value": "={{ $json.__EMPTY_4 }}",
+              "type": "string"
+            },
+            {
+              "id": "4172b49b-1f52-418f-b7cc-aed00d599ac4",
+              "name": "Last week unit",
+              "value": "={{ $json.__EMPTY_5 }}",
+              "type": "string"
+            },
+            {
+              "id": "3f3dab7b-2dad-4cb3-8eee-8642b33aaab2",
+              "name": "4 week Average",
+              "value": "={{ $json.__EMPTY_6 }}",
+              "type": "string"
+            },
+            {
+              "id": "ff705108-79a4-4d31-a815-5c200ef0491a",
+              "name": "On hand",
+              "value": "={{ $json.__EMPTY_7 }}",
+              "type": "string"
+            },
+            {
+              "id": "5e1f927c-ec93-4c4a-8183-0751eb6d5f95",
+              "name": "On Order",
+              "value": "={{ $json.__EMPTY_8 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        592,
+        576
+      ],
+      "id": "79da753a-2e6c-4750-aaa2-033aa864c718",
+      "name": "Normalize2"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ecf0094e-63a7-4f6f-9595-5fd8067017c0",
+              "leftValue": "={{ $json.Depto }}",
+              "rightValue": "D0",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.3,
+      "position": [
+        784,
+        576
+      ],
+      "id": "1ce48e3b-e21f-45d4-b53c-d90d82525dfa",
+      "name": "Filter2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4a62757-6586-4906-b847-06b6788983ad",
+              "name": "Proveedor",
+              "value": "={{ $json.Proveedor }}",
+              "type": "string"
+            },
+            {
+              "id": "bafb17e5-a527-4245-88fc-a9c1585d7864",
+              "name": "Depto",
+              "value": "={{ $json.Depto }}",
+              "type": "string"
+            },
+            {
+              "id": "edbbaa67-91c9-4874-81f3-858bbb547c7b",
+              "name": "Item",
+              "value": "={{ $json.Item }}",
+              "type": "string"
+            },
+            {
+              "id": "cc9f89d9-531b-451c-a4bd-d6caefe5e804",
+              "name": "Description",
+              "value": "={{ $json.Description }}",
+              "type": "string"
+            },
+            {
+              "id": "d2356681-1014-494e-bac7-d2a22d65ed12",
+              "name": "Qty OH",
+              "value": "={{ $json['Qty OH'] }}",
+              "type": "number"
+            },
+            {
+              "id": "78d7b24b-899a-4bfa-9287-28d3aafe9873",
+              "name": "Price",
+              "value": "={{ $json.Price }}",
+              "type": "number"
+            },
+            {
+              "id": "723764cc-b151-4797-bd1e-3e8aca3ebae8",
+              "name": "Status",
+              "value": "={{ $json.Status }}",
+              "type": "string"
+            },
+            {
+              "id": "4674e954-c2ed-49ff-8301-0b6572f885c6",
+              "name": "Last week Sales",
+              "value": "={{ $json[\"Last week Sales\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "3e84c7ab-1e7f-4d4b-b6e4-b6ee2192da31",
+              "name": "Last week unit",
+              "value": "={{ $json[\"Last week unit\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "b7307087-f877-46c7-8376-c8bda081ef3e",
+              "name": "4 week Average",
+              "value": "={{ $json[\"4 week Average\"] }}",
+              "type": "string"
+            },
+            {
+              "id": "088fb492-d3a1-4fbd-ad26-6d1b2ff5971b",
+              "name": "On hand",
+              "value": "={{ $json[\"On hand\"] }}",
+              "type": "number"
+            },
+            {
+              "id": "81cbbdbb-052d-4707-90d6-83681d9d77a8",
+              "name": "On Order",
+              "value": "={{ $json[\"On Order\"] }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        992,
+        576
+      ],
+      "id": "98650a1e-d647-4c8c-aed8-1b76380b9b85",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "TRUNCATE TABLE public.ps_database_prices RESTART IDENTITY CASCADE;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -48,
+        640
+      ],
+      "id": "be057c59-0a4f-4cd0-9662-dd181970d0f4",
+      "name": "Execute a SQL query2",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "chooseBranch"
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        176,
+        576
+      ],
+      "id": "070b04fc-cdcb-4a15-8d61-02c3ce0279c2",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "ps_database_prices",
+          "mode": "list",
+          "cachedResultName": "ps_database_prices"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "dept": "={{ $json.Depto }}",
+            "description": "={{ $json.Description }}",
+            "qty_on_hand": "={{ $json[\"Qty OH\"] }}",
+            "four_week_avg": "={{ $json[\"4 week Average\"] }}",
+            "lw_units": "={{ $json[\"Last week unit\"] }}",
+            "lw_sales": "={{ $json[\"Last week Sales\"] }}",
+            "sell_price": "={{ $json.Price }}",
+            "item_number": "={{ $json.Item }}",
+            "sign": "={{ $json.Price }}",
+            "itm_sts": "={{ $json.Status }}",
+            "search_text": "={{ $json.Item }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "dept",
+              "displayName": "dept",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "search_text",
+              "displayName": "search_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "item_number",
+              "displayName": "item_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sign",
+              "displayName": "sign",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "sell_price",
+              "displayName": "sell_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "itm_sts",
+              "displayName": "itm_sts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lw_sales",
+              "displayName": "lw_sales",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "lw_units",
+              "displayName": "lw_units",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "four_week_avg",
+              "displayName": "four_week_avg",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "qty_on_hand",
+              "displayName": "qty_on_hand",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1184,
+        576
+      ],
+      "id": "7d054109-bb24-4b75-823e-991ebf72440b",
+      "name": "Insert rows in a table2",
+      "credentials": {
+        "postgres": {
+          "id": "ypczWuo0XNflQKlV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1392,
+        576
+      ],
+      "id": "21aa7309-3704-45f0-9880-c39aed6d2e17",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "895578086980611",
+        "recipientPhoneNumber": "50371597740",
+        "textBody": "La base de datos de precios ha sido actualizada",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        576
+      ],
+      "id": "7f979ae4-bee4-4b48-b03f-ab85de954651",
+      "name": "Send message2",
+      "webhookId": "db080583-41de-49dd-a08d-757e6b8fcde0",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "FQo1ZzACc5458TAy",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Form Prices": [
+      {
+        "json": {
+          "Sube el archivo aqui": [
+            {
+              "filename": "Runbook 6702 28 de Febrero 2026.xlsx",
+              "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "size": 719456
+            }
+          ],
+          "submittedAt": "2026-02-28T23:03:46.380-05:00",
+          "formMode": "production"
+        },
+        "binary": {
+          "Sube_el_archivo_aqui": {
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "fileExtension": "xlsx",
+            "data": "filesystem-v2",
+            "fileName": "Runbook 6702 28 de Febrero 2026.xlsx",
+            "id": "filesystem-v2:workflows/JRlzTzj4DhZfcUDM/executions/temp/binary_data/e9443d71-3b81-4621-9a6b-8b8f07ea6a97",
+            "fileSize": "719 kB",
+            "bytes": 719456
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ],
+    "Form Database": [
+      {
+        "json": {
+          "Sube el archivo aqui": [
+            {
+              "filename": "SPOOL0000690 - copia.xlsx",
+              "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+              "size": 125653
+            }
+          ],
+          "submittedAt": "2026-02-28T23:43:37.564-05:00",
+          "formMode": "production"
+        },
+        "binary": {
+          "Sube_el_archivo_aqui": {
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "fileExtension": "xlsx",
+            "data": "filesystem-v2",
+            "fileName": "SPOOL0000690 - copia.xlsx",
+            "id": "filesystem-v2:workflows/JRlzTzj4DhZfcUDM/executions/temp/binary_data/c5fecb37-3b46-4bc5-a888-e0dd6e390a56",
+            "fileSize": "126 kB",
+            "bytes": 125653
+          }
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Form Excel C": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract from File1": {
+      "main": [
+        [
+          {
+            "node": "Normalize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize1": {
+      "main": [
+        [
+          {
+            "node": "Filter1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query1": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Database": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute a SQL query1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File2": {
+      "main": [
+        [
+          {
+            "node": "Normalize2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize2": {
+      "main": [
+        [
+          {
+            "node": "Filter2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query2": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Extract from File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Send message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Prices": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e87cbe40-705a-4459-8a12-b43651cec822",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "JRlzTzj4DhZfcUDM",
+  "tags": []
+}

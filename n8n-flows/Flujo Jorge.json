@@ -1,0 +1,120 @@
+{
+  "name": "Flujo Jorge",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        16
+      ],
+      "id": "3be391d1-cf56-413e-94d3-7bf6ea249361",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "50668f43-432e-4c3f-a16e-27dd11223bb4"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "4e886669-ed8b-452c-90a5-004d11d0433a",
+      "name": "Proceso Autorizado"
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "messaging_product": "whatsapp",
+          "metadata": {
+            "display_phone_number": "50373708594",
+            "phone_number_id": "895578086980611"
+          },
+          "contacts": [
+            {
+              "profile": {
+                "name": "Jorge Castillo"
+              },
+              "wa_id": "50368673619"
+            }
+          ],
+          "messages": [
+            {
+              "from": "50368673619",
+              "id": "wamid.HBgLNTAzNjg2NzM2MTkVAgASGCBBQzcyODkwNkNCRjA0RDJDM0E0OEM2REQ5Njc1MUJGNAA=",
+              "timestamp": "1773926380",
+              "text": {
+                "body": "Jack!"
+              },
+              "type": "text"
+            }
+          ],
+          "field": "messages"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Proceso Autorizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "a691df19-7d67-420d-aa63-3bd89fb5b315",
+  "meta": {
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "cDpogTQpJhMlHxTl",
+  "tags": []
+}

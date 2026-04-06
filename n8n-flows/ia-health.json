@@ -1,0 +1,81 @@
+{
+  "name": "ia-health",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "health",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8d2e514f-b8a1-45bc-b4ef-b113c0335250",
+      "name": "Webhook",
+      "webhookId": "d34d6405-570d-43f8-b9ea-128751f794f9"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.endanus.online",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "es-US,es-419;q=0.9,es;q=0.8,en;q=0.7",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "2800:b20:111a:29d4:946f:a5a3:9328:8ffd",
+            "cf-ipcountry": "SV",
+            "cf-ray": "9e65c03f8d50e855-MIA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "if-none-match": "W/\"22-6OS7cK0FzqnV2NeDHdOSGS1bVUs\"",
+            "origin": "https://ia.endanus.online",
+            "priority": "u=1, i",
+            "referer": "https://ia.endanus.online/",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-site",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "172.68.12.179",
+            "x-forwarded-host": "n8n.endanus.online",
+            "x-forwarded-proto": "http"
+          },
+          "params": {},
+          "query": {},
+          "body": {},
+          "webhookUrl": "https://n8n.endanus.online/webhook/health",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "349a89fc-eba6-4190-a38f-3ec0701cd3c9",
+  "meta": {
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "nMRenRbfNLt3BQXG",
+  "tags": []
+}

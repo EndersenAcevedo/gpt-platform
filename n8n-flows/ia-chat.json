@@ -1,0 +1,235 @@
+{
+  "name": "ia-chat",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -512,
+        16
+      ],
+      "id": "8112424e-7c32-4a29-8d16-32d68f279aef",
+      "name": "Webhook",
+      "webhookId": "4699e652-f038-42ef-8151-b7d49b9c60a5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nconst model = body.model || 'gpt-5';\nconst message = body.message || '';\nconst user = body.user || 'anonymous';\nconst convId = body.convId || null;\n\n// Mapear modelo del frontend al string real de OpenAI API\nconst modelMap = {\n  'gpt-5':     'gpt-5',\n  'gpt-5.4':   'gpt-5.4',\n  'gpt-5.4-pro': 'gpt-5.4-pro',\n  'codex':     'gpt-5.4'\n};\n\nconst systemPrompts = {\n  'gpt-5': `Eres un asistente conversacional inteligente llamado IA Studio, creado por Daniel Acevedo. \nAyudas con análisis, explicaciones, redacción y consultas generales.\nResponde siempre en español a menos que el usuario escriba en otro idioma.`,\n\n  'gpt-5.4': `Eres IA Studio, un asistente especializado en desarrollo de software creado por Daniel Acevedo.\nEres experto en: HTML, CSS, JavaScript, React, Node.js, Python, Java, C#, SQL, Docker y arquitectura de software.\nCuando generes código, usa bloques de código con el lenguaje especificado.\nCuando generes diagramas, usa bloques mermaid.\nResponde siempre en español a menos que el usuario escriba en otro idioma.`,\n\n  'gpt-5.4-pro': `Eres IA Studio Pro, un asistente de alto rendimiento especializado en arquitectura de software y desarrollo avanzado, creado por Daniel Acevedo.\nEres experto en: diseño de sistemas, microservicios, seguridad, optimización de rendimiento, y todos los lenguajes de programación modernos.\nAnaliza profundamente antes de responder. Cuando generes código, hazlo production-ready.\nCuando generes diagramas, usa bloques mermaid.\nResponde siempre en español a menos que el usuario escriba en otro idioma.`,\n\n  'codex': `Eres Codex, un generador de código especializado creado por Daniel Acevedo.\nTu única función es generar código limpio, funcional y listo para producción.\nStacks que dominas: Frontend (HTML/CSS/JS/React/Vue), Backend (Java Spring Boot, C# .NET, Python FastAPI/Django), SQL, Docker.\nSiempre incluye comentarios explicativos en el código.\nMinimiza el texto explicativo — el código habla por sí solo.\nResponde siempre en español a menos que el usuario escriba en otro idioma.`\n};\n\nconst resolvedModel = modelMap[model] || 'gpt-5';\nconst systemPrompt = systemPrompts[model] || systemPrompts['gpt-5'];\n\nreturn [{ json: { message, user, convId, model, resolvedModel, systemPrompt } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        16
+      ],
+      "id": "628cca78-5a76-4e0b-9243-f424ac36c9e8",
+      "name": "preparar datos"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('preparar datos').item.json.message }}",
+        "options": {
+          "systemMessage": "={{ $('preparar datos').item.json.systemPrompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        0,
+        16
+      ],
+      "id": "a899f104-706a-477f-89f1-81f04eda4a62",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        192
+      ],
+      "id": "2970fd5b-8ba1-4dd0-b2d0-80e249ea4beb",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "IWtby97ZCzcqxBK5",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": \"{{ $json.output }}\"\n} ",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        352,
+        16
+      ],
+      "id": "48bed5b7-5f42-4091-a59a-b5ead184d822",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.sessionId }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        192
+      ],
+      "id": "57c9e96e-efc7-46a4-9950-fcd98812de4b",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "iGB9xRyTTzVPakZC",
+          "name": "ai web_db"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.endanus.online",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "content-length": "641",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "es-US,es-419;q=0.9,es;q=0.8,en;q=0.7",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "2800:b20:111a:29d4:946f:a5a3:9328:8ffd",
+            "cf-ipcountry": "SV",
+            "cf-ray": "9e6612590df98b47-TPA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "content-type": "multipart/form-data; boundary=----WebKitFormBoundary1aoDf0xPyMGQi2UX",
+            "origin": "https://ia.endanus.online",
+            "priority": "u=1, i",
+            "referer": "https://ia.endanus.online/",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-site",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "172.68.76.166",
+            "x-forwarded-host": "n8n.endanus.online",
+            "x-forwarded-proto": "http"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "message": "Estas en linea!! excelente, soy tu creador",
+            "model": "gpt-5",
+            "user": "daniel",
+            "sessionId": "7c02d08f7988b538b0eea4e5e79b6c609757462b067d5d132d016e41b6a96c25",
+            "convId": "c1775198294115"
+          },
+          "webhookUrl": "https://n8n.endanus.online/webhook/chat",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "preparar datos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "preparar datos": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bcf19b03-713a-4c75-91a6-5650cf36e41c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "Am9JWXMTpPPON8tn",
+  "tags": []
+}

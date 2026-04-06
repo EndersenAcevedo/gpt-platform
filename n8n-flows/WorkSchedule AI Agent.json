@@ -1,0 +1,1021 @@
+{
+  "name": "WorkSchedule AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=Rol del agente\nEres un agente AI web especializado en la gestión y administración de horarios laborales.\nEste es un entorno de prueba.\n\nFunciones principales\n\nConfirmar de forma clara y directa lo que el usuario solicita.\n\nIndicar que quedas disponible para tareas relacionadas con asignación, ajustes y administración de horarios.\n\nDetección de intención (especial)\nSi el usuario solicita generar horarios con frases como:\n\n“Vamos a generar los horarios de la próxima semana”\n\n“Haz los turnos”\n\n“Programa la semana que viene”\n\n“Necesito horarios nuevos”\n\nDebes responder únicamente con un JSON estructurado como el siguiente:\n\n{\n  \"action\": \"generate_schedule\",\n  \"period\": \"next_week\",\n  \"ai_response\": \"mensaje breve de confirmación o solicitud de aclaración\"\n}\n\n\nLa variable ai_response se utiliza para:\n\nConfirmar la acción cuando la solicitud sea clara\n\nSolicitar una aclaración si falta información (ej. cantidad de empleados, horarios base, reglas)\n\nReglas de comportamiento\n\nResponde de forma breve y profesional.\n\nNo agregues información innecesaria.\n\nNo generes JSON ni formatos especiales excepto cuando se detecte la intención de generar horarios.\n\nNo menciones sistemas internos, variables ni procesos técnicos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2144,
+        416
+      ],
+      "id": "01aa7c1d-3bb6-4a66-a964-6b57cc9f75b0",
+      "name": "AI Agent Procesar mensaje"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -2144,
+        640
+      ],
+      "id": "bd51d978-095d-432f-ba6e-9ce0863b7e21",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook1').item.json.body.user_id }}",
+        "tableName": "WorkSchedule_AI_Agent",
+        "contextWindowLength": 25
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -2016,
+        640
+      ],
+      "id": "7987a25f-f6bb-409d-99c5-799925f06a0f",
+      "name": "Postgres Chat Memory"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-agent",
+        "responseMode": "lastNode",
+        "options": {
+          "responseCode": {
+            "values": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2336,
+        416
+      ],
+      "id": "51e46c26-2ae9-45f1-903d-b30fc657565f",
+      "name": "Webhook1",
+      "webhookId": "806dba11-d3f9-4c8b-ad5f-09f334df9f40"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "455a3158-3316-4457-bd51-ebd1435bf7e2",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -496,
+        608
+      ],
+      "id": "5b152a55-e85e-40ca-8b75-de279b942b53",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.action }}",
+                    "rightValue": "generate_schedule",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2810f004-d1d0-46c0-bfa2-22f23b113460"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Crear horarios"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "67b5e6d1-e264-4c14-a70b-9d04f9814361",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Modificar horarios"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0d573ee8-5745-45ca-b859-1a78d0fc964d",
+                    "leftValue": "",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Asignar reglas"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1728,
+        400
+      ],
+      "id": "c33b60fe-65b5-42f8-b4da-94f543345b7e",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1168,
+        416
+      ],
+      "id": "010040df-d337-4c53-8848-633187813687",
+      "name": "Leer tablas",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        416
+      ],
+      "id": "a68280db-36e7-4057-b00a-9263e771b44b",
+      "name": "Logica de asignacion",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -720,
+        416
+      ],
+      "id": "8de72fd3-8846-4bd4-a2b8-29bf703523e2",
+      "name": "Guardar nuevos valores",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1168,
+        608
+      ],
+      "id": "cae44c2d-10c3-496f-bc9a-59611952b0f0",
+      "name": "Leer tablas1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        608
+      ],
+      "id": "3bb8764f-c449-47af-831e-1122da7fead0",
+      "name": "Logica de asignacion1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -720,
+        608
+      ],
+      "id": "2b5182ee-ee2e-4543-b1cf-084c838cfb12",
+      "name": "Guardar nuevos valores1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1168,
+        800
+      ],
+      "id": "11f12dd9-936b-4a9f-b47e-9e2bfe4d9418",
+      "name": "Leer tablas2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        800
+      ],
+      "id": "bea9b706-3d7f-4329-8e63-adfe07ff221d",
+      "name": "Logica de asignacion2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -720,
+        800
+      ],
+      "id": "6e6c7d7b-ab54-4154-bca6-6d92684c0306",
+      "name": "Guardar nuevos valores2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -352,
+        608
+      ],
+      "id": "75f7e23a-566f-46b5-8f5d-c13f1a4f4b7f",
+      "name": "Cumplimiento de reglas",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b6e59b1d-8ffe-4ba9-84de-002b4cf84ee4",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -208,
+        608
+      ],
+      "id": "91df5586-6eda-4b5e-a6a5-985a7f764325",
+      "name": "If Cumple?",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        48,
+        432
+      ],
+      "id": "78da27e0-cdb3-465f-b9b9-a30b5e4cfdb4",
+      "name": "Confimracion de realizada",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        16,
+        752
+      ],
+      "id": "d916db19-7d02-4f7a-85bf-85c7e28329a1",
+      "name": "No cumple regla, ofrece opciones",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        576
+      ],
+      "id": "119a52fb-8400-47db-98aa-d935d21a8069",
+      "name": "OpenAI Chat Model2",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        368,
+        608
+      ],
+      "id": "c70b546a-439f-4fd4-8bed-4aca4b45dd89",
+      "name": "Merge Salida",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b38a9d10-6dab-492a-83f3-7ed586071f63",
+              "name": "response",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1440,
+        848
+      ],
+      "id": "5d9a33c6-ce74-46f4-8345-2d4c4cc7f9d9",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"action\": \"generate_schedule\",\n  \"period\": \"next_week\",\n  \"ai_response\": \"mensaje breve de confirmación o solicitud de aclaración\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1920,
+        672
+      ],
+      "id": "dece0a31-695a-41df-8028-9816ea10f93e",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -1904,
+        816
+      ],
+      "id": "35c48666-35c9-446c-9987-f72269d83503",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  e.id::text, \n  e.full_name, \n  e.weekly_hours_target, \n  e.max_daily_hours\nFROM workschedule.employees e\nWHERE e.is_active = true\nORDER BY e.full_name;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -1472,
+        48
+      ],
+      "id": "411130f7-618e-4c0c-880c-086b952b3900",
+      "name": "Obtener empleados"
+    },
+    {
+      "parameters": {
+        "jsCode": "const employees = $input.all().map(item => item.json);\nif (employees.length !== 2) {\n  throw new Error(`Se requieren exactamente 2 empleados. Encontrados: ${employees.length}`);\n}\n\n// Calcular lunes de la próxima semana\nconst today = new Date();\nconst nextMonday = new Date(today);\nnextMonday.setDate(today.getDate() + (8 - today.getDay())); // Lunes siguiente\n\nconst dates = [];\nfor (let i = 0; i < 7; i++) {\n  const date = new Date(nextMonday);\n  date.setDate(nextMonday.getDate() + i);\n  dates.push(date.toISOString().split('T')[0]);\n}\n\nreturn [{\n  json: {\n    employees: employees,\n    dates: dates,\n    period: \"next_week\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1264,
+        48
+      ],
+      "id": "b6e779bc-54c7-47ae-9e06-fe802416273a",
+      "name": "Valida y generar fechas"
+    },
+    {
+      "parameters": {
+        "jsCode": "// IDs reales de la BD\nconst juanId = 'c9f87118-d9ce-4e6a-8df3-f0abc9431e2a';\nconst mariaId = '8ffdf02d-9938-4f8d-be81-46980f6377f6';\n\n// Fechas de la próxima semana (lunes a domingo)\nconst today = new Date();\nconst nextMonday = new Date(today.setDate(today.getDate() + (8 - today.getDay())));\nconst dates = Array.from({length: 7}, (_, i) => {\n  const d = new Date(nextMonday);\n  d.setDate(d.getDate() + i);\n  return d.toISOString().split('T')[0];\n});\n\nconst assignments = [];\ndates.forEach((date, idx) => {\n  // Juan libre sábado (día 5), María libre miércoles (día 2)\n  if (idx !== 5) { // Juan trabaja\n    assignments.push({\n      employee_id: juanId,\n      date: date,\n      shift: 'Día',\n      hours: 9, // 9am–6pm = 9 horas\n      start_time: '09:00',\n      end_time: '18:00'\n    });\n  }\n  if (idx !== 2) { // María trabaja\n    assignments.push({\n      employee_id: mariaId,\n      date: date,\n      shift: 'Día',\n      hours: 9,\n      start_time: '09:00',\n      end_time: '18:00'\n    });\n  }\n});\n\nreturn [{ json: { assignments } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        48
+      ],
+      "id": "830ca14e-e924-4d4a-b1bc-c42315aba8cf",
+      "name": "Aplicar reglas"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO workschedule.schedules \n(user_id, employee_id, schedule_date, start_time, end_time, hours_worked, status)\nVALUES \n{{ $json.assignments.map(a => `\n  (\n    (SELECT id FROM workschedule.users WHERE email = 'gerente@endanus.online'),\n    '${a.employee_id}',\n    '${a.date}',\n    '${a.start_time}:00',\n    '${a.end_time}:00',\n    ${a.hours},\n    'confirmed'\n  )\n`).join(',\\n') }}\nON CONFLICT (employee_id, schedule_date) \nDO UPDATE SET \n  start_time = EXCLUDED.start_time,\n  end_time = EXCLUDED.end_time,\n  hours_worked = EXCLUDED.hours_worked,\n  updated_at = CURRENT_TIMESTAMP\nRETURNING *;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -880,
+        48
+      ],
+      "id": "ccedbb5d-bd9c-4724-8d74-8586ef58a9e5",
+      "name": "Guardar en BD"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "all_assignments",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -672,
+        48
+      ],
+      "id": "1a6fe459-3234-4476-8e79-61022a11e1dc",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://140.82.26.227:8081/api/notify",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \n  \"type\": \"schedule_updated\" \n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -464,
+        48
+      ],
+      "id": "fb6764e8-c0ef-42be-bcb4-ba7e6fb13d58",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "462a868c-d5d8-4efd-99c9-e81592f08467",
+              "name": "response",
+              "value": "Horarios generados",
+              "type": "string"
+            },
+            {
+              "id": "fafe7398-3be3-41c9-a830-c60043a239cc",
+              "name": "assignments",
+              "value": "={{ $('Aplicar reglas').item.json.assignments }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        48
+      ],
+      "id": "deac3c8a-a88c-433f-ad0c-2af9282d2334",
+      "name": "Respuesta"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"parameters\": {\n    \"keepOnlySet\": true,\n    \"assignments\": {\n      \"assignments\": [\n        {\n          \"name\": \"response\",\n          \"value\": \"Horarios generados para la próxima semana.\\n\\nJuan Pérez: 6 días (libre sábado)\\nMaría López: 6 días (libre miércoles)\"\n        },\n        {\n          \"name\": \"assignments\",\n          \"value\": \"={{ $input.first().json.assignments }}\"\n        }\n      ]\n    }\n  },\n  \"type\": \"n8n-nodes-base.set\",\n  \"typeVersion\": 3.4,\n  \"name\": \"Preparar Respuesta Final\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d36a4bdf-2cab-45c2-a505-c219c9959cd9",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {
+    "Webhook1": [
+      {
+        "json": {
+          "headers": {
+            "host": "workschedule.endanus.online",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+            "content-length": "83",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "es-US,es-419;q=0.9,es;q=0.8,en;q=0.7",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "2800:b20:111a:64d:c169:50e:f835:fe",
+            "cf-ipcountry": "SV",
+            "cf-ray": "9caee4bcaccd6db9-MIA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "content-type": "application/json",
+            "cookie": "rl_page_init_referrer=RudderEncrypt%3AU2FsdGVkX1%2BX6F%2FNUOx4ENj%2FA%2BvjFCRaZzSrZhBU0x0%3D; rl_page_init_referring_domain=RudderEncrypt%3AU2FsdGVkX1%2B3YUOGqH%2FWJg4LmwQkHpfYJV%2B%2BmG9P%2Bf0%3D; rl_anonymous_id=RudderEncrypt%3AU2FsdGVkX1%2FPskm3ybsQvHv1ogsQv5lFykSSUDEsBpYlUealNrcdGXG8rElZxQQ%2FIpF2CZMQi7YbTWL8sPSF7w%3D%3D; rl_user_id=RudderEncrypt%3AU2FsdGVkX182keIBboiPqvqxa5QAlEkyYkS%2Fv017Vfu%2Bso02Sl8b4qT6R0VCM0UnyfZsVlQN9Nxq36e6Sqm%2BeR5yZYpV924DE4AItimkWOa9sjN5Bi69bpCbj3UjGFNm5d%2Bc%2Bt2fwWqIQj50mlfWhhKU7RygSyumOi8ZEWmAjvY%3D; rl_trait=RudderEncrypt%3AU2FsdGVkX1%2FUGMP%2BlXQR3Uq8jSdOjRItIaiKBaPWwCOhY4okXuGVBC%2FA6V9AAyjssCPF7lPpowh6Zh2pVY%2Fj2yAbXPoKnlLZtFOdonWP592ZMiZgl7GUPMqP%2F%2B8Cvvc8YgXwoWVfY2YdIz%2FWn851U5WkjOEbtBS8%2FizC7rdXjSY%3D; rl_session=RudderEncrypt%3AU2FsdGVkX19YZl3qxk0waJPQzoyVrOCzErNv%2B1Rv6m9fURki6fSJXzKcXTTImPVfzUZwKS9jTwhn7iInclEQQnAEk4sDvHYO%2BbgYaB7KDwd2v5%2BNjy4geESdvrTqqnJR82TTL0TmJqjHy8S6TkM1sQ%3D%3D; ph_phc_4URIAm1uYfJO7j8kWSe0J8lc8IqnstRLS7Jx8NcakHo_posthog=%7B%22%24device_id%22%3A%22019c0d3d-c5ef-78cf-95c5-6eb21d0f855a%22%2C%22distinct_id%22%3A%22efdcb72dd259fab39bdb3b66e6829c6a830f51e4df4a93b927b75328d4786c93%23abfc24c2-50e8-4862-90ab-90926d305fba%22%2C%22%24sesid%22%3A%5B1770593182497%2C%22019c3f7b-8ca7-7ea5-bbc1-aa86b75614d8%22%2C1770591587495%5D%2C%22%24epp%22%3Atrue%2C%22%24initial_person_info%22%3A%7B%22r%22%3A%22%24direct%22%2C%22u%22%3A%22https%3A%2F%2Fn8n.endanus.online%2Fsignin%3Fredirect%3D%25252F%22%7D%7D",
+            "origin": "https://workschedule.endanus.online",
+            "priority": "u=1, i",
+            "referer": "https://workschedule.endanus.online/",
+            "sec-ch-ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "172.70.55.106",
+            "x-forwarded-host": "workschedule.endanus.online",
+            "x-forwarded-proto": "http"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "user_id": "gerente-001",
+            "message": "Generemos los horarios para la proxima semana"
+          },
+          "webhookUrl": "https://n8n.endanus.online/webhook/ai-agent",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent Procesar mensaje",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent Procesar mensaje",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent Procesar mensaje": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent Procesar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Obtener empleados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer tablas1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer tablas2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer tablas": {
+      "main": [
+        [
+          {
+            "node": "Logica de asignacion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logica de asignacion": {
+      "main": [
+        [
+          {
+            "node": "Guardar nuevos valores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar nuevos valores": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer tablas1": {
+      "main": [
+        [
+          {
+            "node": "Logica de asignacion1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logica de asignacion1": {
+      "main": [
+        [
+          {
+            "node": "Guardar nuevos valores1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer tablas2": {
+      "main": [
+        [
+          {
+            "node": "Logica de asignacion2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logica de asignacion2": {
+      "main": [
+        [
+          {
+            "node": "Guardar nuevos valores2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar nuevos valores1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar nuevos valores2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Cumplimiento de reglas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cumplimiento de reglas": {
+      "main": [
+        [
+          {
+            "node": "If Cumple?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Cumple?": {
+      "main": [
+        [
+          {
+            "node": "Confimracion de realizada",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No cumple regla, ofrece opciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Confimracion de realizada",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "No cumple regla, ofrece opciones",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confimracion de realizada": {
+      "main": [
+        [
+          {
+            "node": "Merge Salida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No cumple regla, ofrece opciones": {
+      "main": [
+        [
+          {
+            "node": "Merge Salida",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent Procesar mensaje",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener empleados": {
+      "main": [
+        [
+          {
+            "node": "Valida y generar fechas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valida y generar fechas": {
+      "main": [
+        [
+          {
+            "node": "Aplicar reglas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aplicar reglas": {
+      "main": [
+        [
+          {
+            "node": "Guardar en BD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar en BD": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "5b9ce695-38ee-474a-998c-b3cac7f1a197",
+  "meta": {
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "8FlitLUicxCIUp4k",
+  "tags": []
+}

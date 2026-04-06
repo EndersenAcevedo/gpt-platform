@@ -1,0 +1,268 @@
+{
+  "name": "login",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "api/login",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -192,
+        0
+      ],
+      "id": "5f92fb79-cc3d-41e5-ad47-126db7213021",
+      "name": "Webhook",
+      "webhookId": "c4cebcba-fae6-41b6-b168-8df899017ef7"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"username\": \"{{ $('Webhook').item.json.body.username }}\",\n  \"sessionId\": \"{{ $('verificar hash').item.json.sessionId }}\"\n} ",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        -96
+      ],
+      "id": "c38d3d85-29e8-43b5-9bce-7e70823d77b2",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Credenciales incorrectas\"\n}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        784,
+        112
+      ],
+      "id": "e6a23322-0cd8-4066-8fbb-c77c3ee770f6",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, username, password_hash \nFROM users \nWHERE LOWER(username) = LOWER('{{ $json.body.username }}')\nLIMIT 1;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        16,
+        0
+      ],
+      "id": "358546f2-60c2-4fb5-a5fb-72e3977daab9",
+      "name": "buscar usuario",
+      "credentials": {
+        "postgres": {
+          "id": "iGB9xRyTTzVPakZC",
+          "name": "ai web_db"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const row = $input.first().json;\nconst body = $('Webhook').first().json.body;\n\nif (!row || !row.username) {\n  return [{ json: { success: false } }];\n}\n\nconst [salt, storedHash] = row.password_hash.split(':');\n\n// Hash SHA-256 manual sin crypto\nfunction sha256(str) {\n  let h = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];\n  const k = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];\n  const msg = unescape(encodeURIComponent(str));\n  const bytes = Array.from(msg).map(c => c.charCodeAt(0));\n  bytes.push(0x80);\n  while(bytes.length % 64 !== 56) bytes.push(0);\n  const bitLen = (str.length * 8);\n  bytes.push(0,0,0,0);\n  for(let i=3;i>=0;i--) bytes.push((bitLen >> (i*8)) & 0xff);\n  for(let chunk=0;chunk<bytes.length;chunk+=64){\n    const w=[];\n    for(let i=0;i<16;i++) w.push((bytes[chunk+i*4]<<24)|(bytes[chunk+i*4+1]<<16)|(bytes[chunk+i*4+2]<<8)|bytes[chunk+i*4+3]);\n    for(let i=16;i<64;i++){\n      const s0=((w[i-15]>>>7)|(w[i-15]<<25))^((w[i-15]>>>18)|(w[i-15]<<14))^(w[i-15]>>>3);\n      const s1=((w[i-2]>>>17)|(w[i-2]<<15))^((w[i-2]>>>19)|(w[i-2]<<13))^(w[i-2]>>>10);\n      w.push((w[i-16]+s0+w[i-7]+s1)>>>0);\n    }\n    let [a,b,c,d,e,f,g,hh]=h;\n    for(let i=0;i<64;i++){\n      const S1=((e>>>6)|(e<<26))^((e>>>11)|(e<<21))^((e>>>25)|(e<<7));\n      const ch=(e&f)^(~e&g);\n      const temp1=(hh+S1+ch+k[i]+w[i])>>>0;\n      const S0=((a>>>2)|(a<<30))^((a>>>13)|(a<<19))^((a>>>22)|(a<<10));\n      const maj=(a&b)^(a&c)^(b&c);\n      const temp2=(S0+maj)>>>0;\n      hh=g;g=f;f=e;e=(d+temp1)>>>0;d=c;c=b;b=a;a=(temp1+temp2)>>>0;\n    }\n    h[0]=(h[0]+a)>>>0;h[1]=(h[1]+b)>>>0;h[2]=(h[2]+c)>>>0;h[3]=(h[3]+d)>>>0;\n    h[4]=(h[4]+e)>>>0;h[5]=(h[5]+f)>>>0;h[6]=(h[6]+g)>>>0;h[7]=(h[7]+hh)>>>0;\n  }\n  return h.map(x=>x.toString(16).padStart(8,'0')).join('');\n}\n\nconst inputHash = sha256(salt + body.password);\n\nif (inputHash !== storedHash) {\n  return [{ json: { success: false } }];\n}\n\nconst sessionBytes = Array.from({length:32}, () => Math.floor(Math.random()*256));\nconst sessionId = sessionBytes.map(b => b.toString(16).padStart(2,'0')).join('');\n\nreturn [{ json: { success: true, userId: row.id, username: row.username, sessionId } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "7bb94465-68da-4ee0-be9e-4d8b2f786cfc",
+      "name": "verificar hash"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO sessions (id, user_id, expires_at)\nVALUES (\n  '{{ $json.sessionId }}',\n  {{ $json.userId }},\n  NOW() + INTERVAL '7 days'\n)\nON CONFLICT (id) DO NOTHING;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        704,
+        -96
+      ],
+      "id": "fec8ca9a-e97b-42ba-a551-8540888001b6",
+      "name": "guardar sesión",
+      "credentials": {
+        "postgres": {
+          "id": "iGB9xRyTTzVPakZC",
+          "name": "ai web_db"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "309a290c-cacc-47b3-9f8f-a38c2ca5d28f",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "485528bd-c778-444e-beff-be8782f5174e",
+      "name": "success?"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.endanus.online",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+            "content-length": "42",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "accept-language": "es-US,es-419;q=0.9,es;q=0.8,en;q=0.7",
+            "cdn-loop": "cloudflare; loops=1",
+            "cf-connecting-ip": "2800:b20:111a:29d4:946f:a5a3:9328:8ffd",
+            "cf-ipcountry": "SV",
+            "cf-ray": "9e660438f981cc71-TPA",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "content-type": "application/json",
+            "origin": "https://ia.endanus.online",
+            "priority": "u=1, i",
+            "referer": "https://ia.endanus.online/",
+            "sec-ch-ua": "\"Chromium\";v=\"146\", \"Not-A.Brand\";v=\"24\", \"Google Chrome\";v=\"146\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-site",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "172.68.76.166",
+            "x-forwarded-host": "n8n.endanus.online",
+            "x-forwarded-proto": "http"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "username": "daniel",
+            "password": "Sox0000"
+          },
+          "webhookUrl": "https://n8n.endanus.online/webhook/api/login",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "buscar usuario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar usuario": {
+      "main": [
+        [
+          {
+            "node": "verificar hash",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "verificar hash": {
+      "main": [
+        [
+          {
+            "node": "success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "guardar sesión": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "success?": {
+      "main": [
+        [
+          {
+            "node": "guardar sesión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8e14473a-9c53-4fe2-a22c-954073f29644",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a241ba9b40ee3a4df0e5cbd1c8e0f321f0a7969a584c6a3d8d76b7201c2323d1"
+  },
+  "id": "I88opoI3Mr32Qdf6",
+  "tags": []
+}
