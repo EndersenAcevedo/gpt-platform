@@ -1,0 +1,30 @@
+# Variables de entorno y credenciales
+.env
+.env.*
+*.env
+
+# Credenciales y claves
+credentials.json
+secrets.json
+*.key
+*.pem
+
+# n8n
+.n8n/
+n8n-data/
+
+# Base de datos
+*.sql.bak
+pg_data/
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+npm-debug.log
+
+# Sistema
+.DS_Store
+Thumbs.db
